@@ -26,6 +26,8 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpGet("{id}")]
         public IActionResult Get(string id)
         {
+            //tu owneria unda daubrunos sxvisi restorani?
+            //tu dablokilia ar unda daubrunos
             var res = _restaurantService.GetRestaurant(id);
             if(res == null)
             {
@@ -39,6 +41,8 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpGet]
         public IActionResult Get()
         {
+            //tu owneria unda wamoigos mxolod tavisi restornebi
+            //userma aradablokili
             var res = _restaurantService.GetAllRestaurant();
             return Ok(res);
         }
@@ -48,6 +52,7 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpPost]
         public IActionResult Post([FromBody]RestaurantPostRequest req)
         {
+            //qmnis mxolod owneri
             var res = _restaurantService.CreateRestaurant(req);
             return Ok(res);
         }
@@ -62,6 +67,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return NotFound();
             }
+            //unda gaaketos mxolod ownerma, romlisi restoranicaa
             var res = _restaurantService.UpdateRestaurant(id, req);
             return Ok(res);
         }
@@ -77,6 +83,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return NotFound();
             }
+            //unda gaaketos mxolod ownerma, romlisi restoranicaa
             return Ok();
         }
 
@@ -86,6 +93,7 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpGet("{id}/foods")]
         public IActionResult GetFoods(string id)
         {
+            //tu user aris unda shemowmdes dablokili xo araa
             var res = _restaurantService.GetAllFood(id);
             if (res == null)
             {
@@ -100,6 +108,8 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpGet("{id}/foods/{foodId}")]
         public IActionResult GetFood(string id, string foodId)
         {
+            //user tu dablokilia ar unda wamoigos
+            //owner tu tavisi araa ar unda wamoigos
             var res = _restaurantService.GetFood(id, foodId);
             if (res == null)
             {
@@ -114,6 +124,8 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpPost("{id}/foods")]
         public IActionResult PostFood(string id, [FromBody] FoodPostRequest req)
         {
+            //user tu dablokilia ar unda wamoigos
+            //owner tu tavisi araa ar unda wamoigos
             var res = _restaurantService.GetRestaurant(id);
             if(res == null)
             {
@@ -129,6 +141,7 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpPut("{id}/foods/{foodId}")]
         public IActionResult PutFood(string id, string foodId, [FromBody] FoodPutRequest req)
         {
+            //unda sheedzlos mxolod owners tavis restoranze
             if (_restaurantService.GetFood(id, foodId) == null)
             {
                 return NotFound();
@@ -143,6 +156,7 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpDelete("{id}/foods/{foodId}")]
         public IActionResult DeleteFood(string id, string foodId)
         {
+            //unda sheedzllos mxolod owners tavis restoranze
             bool res = _restaurantService.DeleteFood(id, foodId);
             if (!res)
             {

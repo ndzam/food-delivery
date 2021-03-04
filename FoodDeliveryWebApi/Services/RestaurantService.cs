@@ -105,7 +105,6 @@ namespace FoodDeliveryWebApi.Services
                 Price = food.Price
             };
             foods.Add(f);
-            //TODO id?
             return f;
         }
 
