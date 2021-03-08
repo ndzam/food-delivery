@@ -3,156 +3,317 @@ using FoodDeliveryWebApi.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FoodDeliveryWebApi.Constants;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Firebase.Database.Query;
+using FoodDeliveryWebApi.Response;
+using Firebase.Database;
 
 namespace FoodDeliveryWebApi.Services
 {
     public class RestaurantService : IRestaurantService
     {
-        static List<Restaurant> restaurants;
-        static List<Food> foods;
+        private readonly IFirebaseService _firebaseService;
 
-        public RestaurantService()
+        public RestaurantService(IFirebaseService firebaseService)
         {
-            if(restaurants == null) 
-            {
-                restaurants = new List<Restaurant>();
-                Restaurant r = new Restaurant
-                {
-                    Id = "1",
-                    Name = "a",
-                    Description = "asfsdad"
-                };
-                restaurants.Add(r);
-                r = new Restaurant
-                {
-                    Id = "2",
-                    Name = "b",
-                    Description = "gjgf"
-                };
-                restaurants.Add(r);
-                r = new Restaurant
-                {
-                    Id = "3",
-                    Name = "c",
-                    Description = "hfdkjds"
-                };
-                restaurants.Add(r);
-
-            }
-            if(foods == null)
-            {
-                foods = new List<Food>();
-                Food f = new Food
-                {
-                    RestaurantId = "1",
-                    Id = "1",
-                    Name = "pizza",
-                    Description = "fhsdkj",
-                    Price = 5.7M
-                };
-                foods.Add(f);
-                f = new Food
-                {
-                    RestaurantId = "2",
-                    Id = "2",
-                    Name = "burger",
-                    Description = "fsd",
-                    Price = 3.2M
-                };
-                foods.Add(f);
-                f = new Food
-                {
-                    RestaurantId = "2",
-                    Id = "3",
-                    Name = "salad",
-                    Description = "fjdkgf",
-                    Price = 1M
-                };
-                foods.Add(f);
-                f = new Food
-                {
-                    RestaurantId = "3",
-                    Id = "4",
-                    Name = "gk",
-                    Description = "khoy",
-                    Price = 7.8M
-                };
-                foods.Add(f);
-            }
+            _firebaseService = firebaseService;
+            
         }
 
-        public Restaurant CreateRestaurant(RestaurantPostRequest res)
+        public async Task<ApiResponse<Restaurant>> CreateRestaurantAsync(string userId, RestaurantPostRequest res)
         {
+
             Restaurant r = new Restaurant
             {
-                Id = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+
+                UserId = userId,
                 Name = res.Name,
                 Description = res.Description
             };
-            restaurants.Add(r);
-            return r;
+            string ser = JsonConvert.SerializeObject(r, Formatting.Indented, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+            var firebase = _firebaseService.GetFirebaseClient();
+            try { 
+                var queryResult = await firebase.Child(TableNames.RESTAURANTS).PostAsync(ser);
+                var key = queryResult.Key;
+                Restaurant result = JsonConvert.DeserializeObject<Restaurant>(queryResult.Object);
+                result.Id = key;
+                return new ApiResponse<Restaurant>
+                {
+                    Success = true,
+                    Data = result
+                };
+            }
+            /*catch (FirebaseException ex)
+            {
+                return new ApiResponse<Restaurant>
+                {
+                    Success = false,
+                    ErrorCode = ex.InnerException.Message
+                };
+            }*/
+
+            catch
+            {
+                return new ApiResponse<Restaurant>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
         }
 
-        public Food CreateFood(string restaurantId, FoodPostRequest food)
+        public async Task<ApiResponse<Food>> CreateFood(string restaurantId, FoodPostRequest food)
         {
             Food f = new Food
             {
-                Id = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
-                RestaurantId = restaurantId,
                 Name = food.Name,
                 Description = food.Description,
                 Price = food.Price
             };
-            foods.Add(f);
-            return f;
+            
+            string ser = JsonConvert.SerializeObject(f, Formatting.Indented, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+            var firebase = _firebaseService.GetFirebaseClient();
+            try
+            {
+                var queryResult = await firebase.Child(TableNames.RESTAURANTS).Child(restaurantId).Child(TableNames.FOODS).PostAsync(ser);
+                var key = queryResult.Key;
+                Food result = JsonConvert.DeserializeObject<Food>(queryResult.Object);
+                result.Id = key;
+                return new ApiResponse<Food>
+                {
+                    Success = true,
+                    Data = result
+                };
+            }
+            /*catch (FirebaseException ex)
+            {
+                return new ApiResponse<Restaurant>
+                {
+                    Success = false,
+                    ErrorCode = ex.InnerException.Message
+                };
+            }*/
+
+            catch
+            {
+                return new ApiResponse<Food>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
         }
 
-        public bool DeleteRestaurant(string id)
+        public async Task<ApiResponse> DeleteRestaurantAsync(string id)
         {
-            return restaurants.RemoveAll(x => x.Id == id) > 0;
+            var firebase = _firebaseService.GetFirebaseClient();
+            try {
+                await firebase.Child(TableNames.RESTAURANTS).Child(id).DeleteAsync();
+                return new ApiResponse
+                {
+                    Success = true
+                };
+            } catch
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
         }
 
-        public bool DeleteFood(string restaurantId, string id)
+        public async Task<ApiResponse> DeleteFood(string restaurantId, string id)
         {
-            return foods.RemoveAll(x => x.Id == id && x.RestaurantId==restaurantId) > 0;
+            var firebase = _firebaseService.GetFirebaseClient();
+            try
+            {
+                await firebase.Child(TableNames.RESTAURANTS).Child(id).Child(TableNames.FOODS).Child(id).DeleteAsync();
+                return new ApiResponse
+                {
+                    Success = true
+                };
+            }
+            catch
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
         }
 
-        public Restaurant GetRestaurant(string id)
+        public async Task<ApiResponse<Restaurant>> GetRestaurant(string id)
         {
-            return restaurants.FirstOrDefault(x => x.Id == id);
+            var firebase = _firebaseService.GetFirebaseClient();
+            try 
+            {
+                var res = await firebase.Child(TableNames.RESTAURANTS).Child(id).OnceSingleAsync<Restaurant>();
+                return new ApiResponse<Restaurant>
+                {
+                    Data = res,
+                    Success = true
+                };
+            } catch (Exception e)
+            {
+                return new ApiResponse<Restaurant>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
         }
 
-        public Food GetFood(string restaurantId, string id)
+        public async Task<ApiResponse<Food>> GetFood(string restaurantId, string id)
         {
-            return foods.FirstOrDefault(x => x.Id == id && x.RestaurantId == restaurantId);
+            var firebase = _firebaseService.GetFirebaseClient();
+            try
+            {
+                var res = await firebase.Child(TableNames.RESTAURANTS).Child(restaurantId).Child(TableNames.FOODS).Child(id).OnceSingleAsync<Food>();
+                return new ApiResponse<Food>
+                {
+                    Data = res,
+                    Success = true
+                };
+            }
+            catch (Exception e)
+            {
+                return new ApiResponse<Food>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
         }
 
-        public List<Restaurant> GetAllRestaurant()
+        public async Task<ApiResponse<List<Restaurant>>> GetAllRestaurant()
         {
-            return restaurants;
+            var firebase = _firebaseService.GetFirebaseClient();
+            try
+            {
+                var res = await firebase.Child(TableNames.RESTAURANTS).OnceAsync<Restaurant>();
+                List<Restaurant> list = new List<Restaurant>();
+                foreach(var v in res){
+                    Restaurant r = v.Object;
+                    r.Id = v.Key;
+                    list.Add(r);
+                }
+                return new ApiResponse<List<Restaurant>>
+                {
+                    Data = list,
+                    Success = true
+                };
+            }
+            catch (Exception e)
+            {
+                return new ApiResponse<List<Restaurant>>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
         }
 
-        public List<Food> GetAllFood(string restaurantId)
+        public async Task<ApiResponse<List<Food>>> GetAllFood(string restaurantId)
         {
-            return foods.FindAll(x => x.RestaurantId == restaurantId);
+            var firebase = _firebaseService.GetFirebaseClient();
+            try
+            {
+                var res = await firebase.Child(TableNames.RESTAURANTS).Child(restaurantId).Child(TableNames.FOODS).OnceAsync<Food>();
+                List<Food> list = new List<Food>();
+                foreach (var v in res)
+                {
+                    Food r = v.Object;
+                    r.Id = v.Key;
+                    list.Add(r);
+                }
+                return new ApiResponse<List<Food>>
+                {
+                    Data = list,
+                    Success = true
+                };
+            }
+            catch (Exception e)
+            {
+                return new ApiResponse<List<Food>>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
         }
 
-        public Restaurant UpdateRestaurant(string id, RestaurantPutRequest res)
+        public async Task<ApiResponse<Restaurant>> UpdateRestaurant(string id, RestaurantPutRequest res)
         {
-            Restaurant v = restaurants.FirstOrDefault(x => x.Id == id);
-            v.Name = res.Name;
-            v.Description = res.Description;
-            return v;
+            Restaurant r = new Restaurant
+            {
+                Name = res.Name,
+                Description = res.Description
+            };
+            string ser = JsonConvert.SerializeObject(r, Formatting.Indented, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+            var firebase = _firebaseService.GetFirebaseClient();
+            try
+            {
+                await firebase.Child(TableNames.RESTAURANTS).Child(id).PatchAsync(ser);
+                
+                return new ApiResponse<Restaurant>
+                {
+                    Success = true,
+                    Data = r
+                };
+            }
+            catch
+            {
+                return new ApiResponse<Restaurant>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
         }
 
-        public Food UpdateFood(string restaurantId, string id, FoodPutRequest food)
+        public async Task<ApiResponse<Food>> UpdateFood(string restaurantId, string id, FoodPutRequest req)
         {
-            Food f = foods.FirstOrDefault(x => x.RestaurantId == restaurantId && x.Id == id);
-            f.Name = food.Name;
-            f.Price = food.Price;
-            f.Description = food.Description;
-            return f;
+            Food food = new Food
+            {
+                Name = req.Name,
+                Description = req.Description,
+                Price = req.Price
+            };
+            string ser = JsonConvert.SerializeObject(food, Formatting.Indented, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+            var firebase = _firebaseService.GetFirebaseClient();
+            try
+            {
+                await firebase.Child(TableNames.RESTAURANTS).Child(restaurantId).Child(TableNames.FOODS).Child(id).PatchAsync(ser);
+                return new ApiResponse<Food>
+                {
+                    Success = true,
+                    Data = food
+                };
+            }
+            catch
+            {
+                return new ApiResponse<Food>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
         }
     }
 }

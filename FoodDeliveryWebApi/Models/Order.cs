@@ -8,6 +8,7 @@ namespace FoodDeliveryWebApi.Models
     public class Order
     {
         public string OrderId { get; set; }
+        public string UserId { get; set; }
         public string RestaurantId { get; set; }
         public List<OrderItem> Items { get; set; }
         public decimal TotalPrice { get; set; }

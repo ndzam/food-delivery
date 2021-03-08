@@ -51,3 +51,16 @@ C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.
 C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\Google.Apis.Core.dll
 C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\Microsoft.Bcl.AsyncInterfaces.dll
 C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\Newtonsoft.Json.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\Firebase.Auth.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\Firebase.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\LiteDB.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\System.Reactive.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\System.Runtime.InteropServices.WindowsRuntime.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\Microsoft.AspNetCore.Authentication.Negotiate.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\Microsoft.AspNetCore.Connections.Abstractions.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\Microsoft.AspNetCore.Http.Features.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\System.DirectoryServices.Protocols.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\System.IO.Pipelines.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\runtimes\linux\lib\netcoreapp2.0\System.DirectoryServices.Protocols.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\runtimes\osx\lib\netcoreapp2.0\System.DirectoryServices.Protocols.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\runtimes\win\lib\netcoreapp2.0\System.DirectoryServices.Protocols.dll

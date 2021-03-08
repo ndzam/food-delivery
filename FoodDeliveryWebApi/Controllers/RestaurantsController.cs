@@ -1,4 +1,5 @@
-﻿using FoodDeliveryWebApi.Requests;
+﻿using FoodDeliveryWebApi.Constants;
+using FoodDeliveryWebApi.Requests;
 using FoodDeliveryWebApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,12 +25,13 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [HttpGet("{id}")]
-        public IActionResult Get(string id)
+        public async Task<IActionResult> Get(string id)
         {
             //tu owneria unda daubrunos sxvisi restorani?
             //tu dablokilia ar unda daubrunos
-            var res = _restaurantService.GetRestaurant(id);
-            if(res == null)
+            //unknown error?
+            var res = await _restaurantService.GetRestaurant(id);
+            if(res.Success && res.Data == null)
             {
                 return NotFound();
             }
@@ -39,36 +41,49 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
             //tu owneria unda wamoigos mxolod tavisi restornebi
             //userma aradablokili
-            var res = _restaurantService.GetAllRestaurant();
+            
+            var res = await _restaurantService.GetAllRestaurant();
             return Ok(res);
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [HttpPost]
-        public IActionResult Post([FromBody]RestaurantPostRequest req)
+        public async Task<IActionResult> PostAsync([FromBody]RestaurantPostRequest req)
         {
             //qmnis mxolod owneri
-            var res = _restaurantService.CreateRestaurant(req);
+            string userId = "J7nV5vBerlb4NCMY67kUi7cSveN2";
+
+            var res = await _restaurantService.CreateRestaurantAsync(userId, req);
             return Ok(res);
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [HttpPut("{id}")]
-        public IActionResult Put(string id, [FromBody]RestaurantPutRequest req)
+        public async Task<IActionResult> Put(string id, [FromBody]RestaurantPutRequest req)
         {
-            if(_restaurantService.GetRestaurant(id) == null)
+            //tu adminia?
+            var userId = "";
+            var role = "";
+            var restaurant = await _restaurantService.GetRestaurant(id);
+            if(restaurant.Success && restaurant.Data == null)
             {
                 return NotFound();
+            } else if(!role.Equals(UserRoles.ADMIN) && restaurant.Success && !restaurant.Data.UserId.Equals(userId))
+            {
+                return Forbid();
+            } else if (!restaurant.Success)
+            {
+                //return unknown error.
             }
-            //unda gaaketos mxolod ownerma, romlisi restoranicaa
-            var res = _restaurantService.UpdateRestaurant(id, req);
+            var res = await _restaurantService.UpdateRestaurant(id, req);
             return Ok(res);
         }
 
@@ -76,10 +91,10 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [HttpDelete("{id}")]
-        public IActionResult Delete(string id)
+        public async Task<IActionResult> DeleteAsync(string id)
         {
-            bool res = _restaurantService.DeleteRestaurant(id);
-            if (!res)
+            var res = await _restaurantService.DeleteRestaurantAsync(id);
+            if (!res.Success)
             {
                 return NotFound();
             }
@@ -91,11 +106,11 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [HttpGet("{id}/foods")]
-        public IActionResult GetFoods(string id)
+        public async Task<IActionResult> GetFoods(string id)
         {
             //tu user aris unda shemowmdes dablokili xo araa
-            var res = _restaurantService.GetAllFood(id);
-            if (res == null)
+            var res = await _restaurantService.GetAllFood(id);
+            if (res.Success && res.Data == null)
             {
                 return NotFound();
             }
@@ -106,12 +121,12 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [HttpGet("{id}/foods/{foodId}")]
-        public IActionResult GetFood(string id, string foodId)
+        public async Task<IActionResult> GetFood(string id, string foodId)
         {
             //user tu dablokilia ar unda wamoigos
             //owner tu tavisi araa ar unda wamoigos
-            var res = _restaurantService.GetFood(id, foodId);
-            if (res == null)
+            var res = await _restaurantService.GetFood(id, foodId);
+            if (res.Success && res.Data == null)
             {
                 return NotFound();
             }
@@ -122,7 +137,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [HttpPost("{id}/foods")]
-        public IActionResult PostFood(string id, [FromBody] FoodPostRequest req)
+        public async Task<IActionResult> PostFood(string id, [FromBody] FoodPostRequest req)
         {
             //user tu dablokilia ar unda wamoigos
             //owner tu tavisi araa ar unda wamoigos
@@ -131,7 +146,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return NotFound();
             }
-            var food = _restaurantService.CreateFood(id, req);
+            var food = await _restaurantService.CreateFood(id, req);
             return Ok(food);
         }
 
@@ -139,14 +154,14 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [HttpPut("{id}/foods/{foodId}")]
-        public IActionResult PutFood(string id, string foodId, [FromBody] FoodPutRequest req)
+        public async Task<IActionResult> PutFood(string id, string foodId, [FromBody] FoodPutRequest req)
         {
-            //unda sheedzlos mxolod owners tavis restoranze
+            /*//unda sheedzlos mxolod owners tavis restoranze
             if (_restaurantService.GetFood(id, foodId) == null)
             {
                 return NotFound();
-            }
-            var res = _restaurantService.UpdateFood(id, foodId, req);
+            }*/
+            var res = await _restaurantService.UpdateFood(id, foodId, req);
             return Ok(res);
         }
 
@@ -154,11 +169,11 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [HttpDelete("{id}/foods/{foodId}")]
-        public IActionResult DeleteFood(string id, string foodId)
+        public async Task<IActionResult> DeleteFood(string id, string foodId)
         {
             //unda sheedzllos mxolod owners tavis restoranze
-            bool res = _restaurantService.DeleteFood(id, foodId);
-            if (!res)
+            var res = await _restaurantService.DeleteFood(id, foodId);
+            if (!res.Success)
             {
                 return NotFound();
             }

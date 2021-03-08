@@ -1,5 +1,4 @@
-﻿using FirebaseAdmin.Auth;
-using FoodDeliveryWebApi.Models;
+﻿using FoodDeliveryWebApi.Models;
 using FoodDeliveryWebApi.Requests;
 using FoodDeliveryWebApi.Response;
 using Newtonsoft.Json;
@@ -10,137 +9,251 @@ using System.Text;
 using System.Threading.Tasks;
 using FoodDeliveryWebApi.Configs;
 using Microsoft.Extensions.Options;
+using FoodDeliveryWebApi.Constants;
+using Firebase.Auth;
+using Firebase.Database.Query;
+using System.Linq;
+using System.Collections.Generic;
+using FirebaseAdmin.Auth;
 
 namespace FoodDeliveryWebApi.Services
 {
     public class UserService : IUserService
     {
+        private readonly IFirebaseService _firebaseService;
         private readonly string _apiKey;
-        public UserService(IOptions<APIConfigs> options)
+        public UserService(IOptions<APIConfigs> options, IFirebaseService firebaseService)
         {
             _apiKey = options.Value.ApiKey;
+            _firebaseService = firebaseService;
         }
 
-        public async Task<ApiResponse<User>> Create(UserPostRequest request)
+        public async Task<ApiResponse<TokenDto>> Create(UserPostRequest request)
         {
-            UserRecordArgs userRecordArgs = new UserRecordArgs
+            if (request.Password != request.ConfirmPassword)
             {
-                Email = request.Email,
-                EmailVerified = true,
-                Password = request.Password,
-                DisplayName = $"{request.Firstname} {request.Lastname}",
-                Disabled = false,
-            };
+                return new ApiResponse<TokenDto>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.PASSWORDS_DONT_MATCH
+                };
+            }
+            if(request.Name == null || request.Name.Length < 3)
+            {
+                return new ApiResponse<TokenDto>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.INVALID_NAME
+                };
+            }
+            if(request.Role == null) request.Role = UserRoles.USER;
+            else request.Role  = request.Role.ToLowerInvariant();
+
+            if(request.Role!= UserRoles.OWNER && request.Role != UserRoles.USER)
+            {
+                request.Role = UserRoles.USER;
+            }
+            
             try
             {
-                UserRecord userRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(userRecordArgs);
-
-                string customToken = await FirebaseAuth.DefaultInstance.CreateCustomTokenAsync(userRecord.Uid);
-
-                return new ApiResponse<User>
+                var auth = await _firebaseService.GetFirebaseAuthProvider().CreateUserWithEmailAndPasswordAsync(request.Email, request.Password, request.Name, false);
+                
+                var additionalClaims = new Dictionary<string, object>()
+                {
+                    { "role" , request.Role},
+                };
+               // await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.SetCustomUserClaimsAsync(auth.User.LocalId, additionalClaims);
+               // var token = await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.CreateCustomTokenAsync(auth.User.LocalId, additionalClaims);
+               // FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.
+                //string customToken = await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance
+                //    .CreateCustomTokenAsync(auth.User.LocalId, additionalClaims);
+                //UserRecord user = await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.GetUserAsync(auth.User.LocalId);
+                
+                //FirebaseToken decoded = await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(auth.User.LocalId);
+                /*var c = decoded.Claims;
+                object isAdmin;
+                if (decoded.Claims.TryGetValue(request.Role, out isAdmin))
+                {
+                    if ((bool)isAdmin)
+                    {
+                        // Allow access to requested admin resource.
+                    }
+                }*/
+                //var role = user.CustomClaims["role"];
+                var firebase = _firebaseService.GetFirebaseClient(auth.FirebaseToken);
+                var profile = await firebase.Child(TableNames.PROFILE).PostAsync(Newtonsoft.Json.JsonConvert.SerializeObject(new Profile{
+                    UserId = auth.User.LocalId,
+                    Role = request.Role
+                }));
+                return new ApiResponse<TokenDto>
                 {
                     Success = true,
-                    Data = new User
+                    Data = new TokenDto
                     {
-                        Id = userRecord.Uid,
-                        Name = userRecord.DisplayName,
-                        Token = customToken
+                        Token = auth.FirebaseToken,
+                        RefreshToken = auth.RefreshToken,
+                        Name = auth.User.DisplayName,
+                        Email = auth.User.Email,
+                        UserId = auth.User.LocalId,
+                        ExpiresIn = auth.ExpiresIn,
+                        CreatedAt = auth.Created,
+                        Role = request.Role
                     }
                 };
-            }
-            catch (FirebaseAuthException ex)
+            }catch (Firebase.Auth.FirebaseAuthException ex)
             {
-                return new ApiResponse<User>
+                return new ApiResponse<TokenDto>
                 {
                     Success = false,
-                    ErrorCode = ex.AuthErrorCode.HasValue ? ex.AuthErrorCode.Value.ToString() : ex.ErrorCode.ToString()
+                    ErrorCode = _firebaseService.ConvertErrorCode(ex.Reason)
                 };
-            }
-            catch (System.ArgumentException ex)
+            }catch
             {
-                return new ApiResponse<User>
+                return new ApiResponse<TokenDto>
                 {
                     Success = false,
-                    ErrorCode = ex.Message.ToString()
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
                 };
             }
         }
 
-        public async Task<ApiResponse<User>> SignIn(TokenRequest request)
-        {
-            try
-            {
-                HttpClient client = new HttpClient();
-                VerifyPasswordResponse verifyPasswordResponse = null;
-                try
-                {
-                    var content = JsonConvert.SerializeObject(request, new JsonSerializerSettings
-                    {
-                        ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                        MissingMemberHandling = MissingMemberHandling.Ignore
-                    });
-                    var payload = new StringContent(content, Encoding.UTF8, "application/json");
-                    var response = await client.PostAsync("https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=" + _apiKey, payload);
-                    string responseJson = await response.Content.ReadAsStringAsync();
-                    response.EnsureSuccessStatusCode();
-                    verifyPasswordResponse = JsonConvert.DeserializeObject<VerifyPasswordResponse>(responseJson);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-
-                if (verifyPasswordResponse == null)
-                {
-                    return new ApiResponse<User>
-                    {
-                        Success = false,
-                        ErrorCode = "CAN_NOT_SIGN_IN"
-                    };
-                }
-
-                return new ApiResponse<User>
-                {
-                    Success = true,
-                    Data = new User
-                    {
-                        Id = verifyPasswordResponse.LocalId,
-                        Name = verifyPasswordResponse.Email,
-                        Token = verifyPasswordResponse.IdToken
-                    }
-                };
-            }
-            catch (FirebaseAuthException ex)
-            {
-                return new ApiResponse<User>
-                {
-                    Success = false,
-                    ErrorCode = ex.AuthErrorCode.HasValue ? ex.AuthErrorCode.Value.ToString() : ex.ErrorCode.ToString()
-                };
-            }
-            catch (System.ArgumentException ex)
-            {
-                return new ApiResponse<User>
-                {
-                    Success = false,
-                    ErrorCode = ex.Message.ToString()
-                };
-            }
-        }
 
         public ApiResponse Delete(string id)
         {
             throw new System.NotImplementedException();
         }
 
-        public ApiResponse<User> Get(string id)
+        public ApiResponse<Models.User> Get(string id)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public ApiResponse<User> Update(UserPutRequest request)
+        public async Task<ApiResponse<TokenDto>> SignIn(TokenRequest request)
         {
-            throw new System.NotImplementedException();
+            try
+            {
+                var auth = await _firebaseService.GetFirebaseAuthProvider().SignInWithEmailAndPasswordAsync(request.Email, request.Password);
+
+                return new ApiResponse<TokenDto>
+                {
+                    Success = true,
+                    Data = new TokenDto
+                    {
+                        Token = auth.FirebaseToken,
+                        RefreshToken = auth.RefreshToken,
+                        Name = auth.User.DisplayName,
+                        Email = auth.User.Email,
+                        UserId = auth.User.LocalId,
+                        ExpiresIn = auth.ExpiresIn,
+                        CreatedAt = auth.Created
+                    }
+                };
+            }
+            catch (Firebase.Auth.FirebaseAuthException ex)
+            {
+                return new ApiResponse<TokenDto>
+                {
+                    Success = false,
+                    ErrorCode = _firebaseService.ConvertErrorCode(ex.Reason)
+                };
+            }
+        }
+
+        public async Task<ApiResponse> Update(string token, string id, UserPutRequest request)
+        {
+            if(request.Role == null)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.INVALID_ROLE
+                };
+            }
+            request.Role = request.Role.ToLowerInvariant();
+            if(request.Role != UserRoles.USER && request.Role != UserRoles.ADMIN && request.Role != UserRoles.OWNER)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.INVALID_ROLE
+                };
+            }
+            try
+            {
+                var auth = await _firebaseService.GetFirebaseAuthProvider().GetUserAsync(token);
+                var firebase = _firebaseService.GetFirebaseClient(token);
+                
+                var queryResult = await firebase
+                    .Child(TableNames.PROFILE)
+                    .OrderBy("UserId")
+                    .StartAt(auth.LocalId)
+                    .LimitToFirst(1)
+                    .OnceAsync<Profile>();
+
+                if(queryResult == null || queryResult.Count == 0)
+                {
+                    return new ApiResponse
+                    {
+                        Success = false,
+                        ErrorCode = ErrorCodes.FORBIDEN
+                    };
+                }
+
+                var profile = queryResult.ToList()[0].Object;
+                if(profile.Role != UserRoles.ADMIN)
+                {
+                    return new ApiResponse
+                    {
+                        Success = false,
+                        ErrorCode = ErrorCodes.FORBIDEN
+                    };
+                }
+                
+                var queryResult2 = await firebase
+                    .Child(TableNames.PROFILE)
+                    .OrderBy("UserId")
+                    .StartAt(id)
+                    .LimitToFirst(1)
+                    .OnceAsync<Profile>();
+
+                if(queryResult2 == null || queryResult2.Count == 0)
+                {
+                    return new ApiResponse
+                    {
+                        Success = false,
+                        ErrorCode = ErrorCodes.NOT_FOUND
+                    };
+                }
+                var queryResultObject = queryResult2.ToList()[0];
+                var target = queryResultObject.Object;
+
+                await firebase
+                .Child(TableNames.PROFILE)
+                .Child(queryResultObject.Key)
+                .PatchAsync(Newtonsoft.Json.JsonConvert.SerializeObject(new Profile{
+                    UserId = id,
+                    Role = request.Role
+                }));
+            }
+            catch (Firebase.Auth.FirebaseAuthException ex)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = _firebaseService.ConvertErrorCode(ex.Reason)
+                };
+            }catch  {
+                return new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
+
+            return new ApiResponse
+            {
+                Success = true,
+            };
         }
     }
 }

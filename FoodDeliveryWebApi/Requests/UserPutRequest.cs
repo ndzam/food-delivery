@@ -7,5 +7,7 @@ namespace FoodDeliveryWebApi.Requests
 {
     public class UserPutRequest
     {
+        public string Role { get; set; }
+        public string Name { get; set; }
     }
 }

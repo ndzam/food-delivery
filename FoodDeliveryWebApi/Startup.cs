@@ -10,6 +10,7 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using System;
 using FoodDeliveryWebApi.Configs;
+using Microsoft.AspNetCore.Authentication.Negotiate;
 
 namespace FoodDeliveryWebApi
 {
@@ -32,10 +33,17 @@ namespace FoodDeliveryWebApi
                 Credential = GoogleCredential.GetApplicationDefault(),
             });
             Console.WriteLine(defaultApp.Name);
+            
+            services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
+                .AddNegotiate();
+
+
+
+            services.AddTransient<IFirebaseService, FirebaseService>();
+            
             services.AddTransient<IOrderService, OrderService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IRestaurantService, RestaurantService>();
-            services.AddTransient<IFoodService, FoodService>();
             services.AddControllers();
             
         }
