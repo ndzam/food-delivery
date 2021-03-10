@@ -10,7 +10,7 @@ namespace FoodDeliveryWebApi.Services
 {
     public interface IRestaurantService
     {
-        Task<ApiResponse<List<Restaurant>>> GetAllRestaurant();
+        Task<ApiResponse<List<Restaurant>>> GetAllRestaurant(string userId, string role);
         Task<ApiResponse<Restaurant>> GetRestaurant(string id);
 
         Task<ApiResponse<Restaurant>> CreateRestaurantAsync(string useId, RestaurantPostRequest res);
@@ -27,5 +27,9 @@ namespace FoodDeliveryWebApi.Services
         Task<ApiResponse<Food>> UpdateFood(string restaurantId, string id, FoodPutRequest food);
 
         Task<ApiResponse> DeleteFood(string restaurantId, string id);
+
+        Task<ApiResponse<Block>> CreateBlock(string restaurantId, BlockPostRequest req);
+
+        Task<ApiResponse<bool>> IsBlocked(string userId, string restaurantID);
     }
 }

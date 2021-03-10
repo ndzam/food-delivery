@@ -53,25 +53,43 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetOrder(string orderId)
         {
+            //amovigo tokenidan
             var userId = "";
+            var role = UserRoles.OWNER;
             var res = await _orderService.GetOrder(orderId);
+            if (!res.Success)
+            {
+                //unknown error
+            }
             if (res.Success && res.Data == null)
             {
                 return NotFound();
             }
-            if (res.Success)
+            var order = res.Data;
+            if (!order.UserId.Equals(userId) && !order.RestaurantOwnerId.Equals(userId))
             {
-                var order = res.Data;
-                if (!order.UserId.Equals(userId) && !order.RestaurantOwnerId.Equals(userId))
-                {
-
-                    //todo movashoro
-                    //return Forbid();
-                }
-                return Ok(res);
+                //movashoro
+                //return Forbid();
             }
-            //unknown error
-            return BadRequest();
+            var v = await _restaurantService.GetRestaurant(order.RestaurantId);
+            if (!v.Success)
+            {
+                //unknown error
+            }
+            res.Data.IsRestaurantDeleted = v.Data == null;
+            if (!res.Data.IsRestaurantDeleted)
+            {
+                var k = await _restaurantService.IsBlocked(res.Data.UserId, res.Data.RestaurantId);
+                if (!k.Success)
+                {
+                    //unknown error
+                }
+                res.Data.IsUserBlocked = k.Data;
+            } else
+            {
+                res.Data.IsUserBlocked = false;
+            }
+            return Ok(res);
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
@@ -81,41 +99,66 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpPut("{id}/status")]
         public async Task<IActionResult> PutOrderStatus(string id, [FromBody]OrderStatusPutRequest req)
         {
-            //unda ecvlebodes mxolod statusi shemdegi principit da mxolod mflobelisgan
+            //amovigo tokenidan
+            //ase iyos putit? patch?
             var userId = "";
             var role = UserRoles.USER;
             var res = await _orderService.GetOrder(id);
-            if (res.Success && res.Data == null)
+            if (!res.Success)
+            {
+                //unknown error
+                return NotFound();
+            }
+            if (res.Data == null)
             {
                 return NotFound();
             }
-            if (res.Success)
+            var order = res.Data;
+            if(!OrderStatuses.isValidStatusChange(order.Status.CurrentStatus, req.Status, role))
             {
-                var order = res.Data;
-                if(!OrderStatuses.isValidStatusChange(order.Status.CurrentStatus, req.Status, role))
-                {
-                    //es statusi unda?
-                    return BadRequest();
-                }
-                if (!order.UserId.Equals(userId) &&  !order.RestaurantOwnerId.Equals(userId) && false)
-                {
-                    return Forbid();
-                }
-                order.Status.CurrentStatus = req.Status;
-                order.Status.StatusHistory.Add(new StatusHistoryItem
-                {
-                    Date = Utils.GetDateEpoch(),
-                    Status = req.Status
-                });
-                var result = await _orderService.UpdateOrderStatus(id, order);
-                if (result.Success)
-                {
-                    return Ok(res);
-                }
-                //unknown error
+                //es statusi unda?
+                return BadRequest();
             }
-            //unknown error
-            return NotFound();
+            if (!order.UserId.Equals(userId) &&  !order.RestaurantOwnerId.Equals(userId) && false)
+            {
+                return Forbid();
+            }
+            var v = await _restaurantService.GetRestaurant(order.RestaurantId);
+            if (!v.Success)
+            {
+                //unknown error
+                return NotFound();
+            }
+            if (v.Data == null)
+            {
+                //washlili yofila restorani, es davabruno?
+                return NotFound();
+            }
+            var k = await _restaurantService.IsBlocked(order.UserId, order.RestaurantId);
+            if (!k.Success)
+            {
+                //unknown error
+                return NotFound();
+            }
+            if (k.Data)
+            {
+                //dablokilia
+                return NotFound();
+            }
+            order.Status.CurrentStatus = req.Status;
+            order.Status.StatusHistory.Add(new StatusHistoryItem
+            {
+                Date = Utils.GetDateEpoch(),
+                Status = req.Status
+            });
+            var result = await _orderService.UpdateOrderStatus(id, order);
+            if (!result.Success)
+            {
+                //unknown error
+                return NotFound();
+            }
+            //ra davabruno?
+            return Ok(res);
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
@@ -128,47 +171,62 @@ namespace FoodDeliveryWebApi.Controllers
         {
             var userId = "fshdsu1";
             var role = UserRoles.USER;
-            //shesamowmebelia dablokiloba.
             if (!role.Equals(UserRoles.USER))
             {
                 return Forbid();
             }
             var res = await _restaurantService.GetRestaurant(req.RestaurantId);
-            if (res.Success && res.Data == null)
-            {
-                return NotFound();
-            }
-            else if (!res.Success)
+            if (!res.Success)
             {
                 //unknown error
                 return NotFound();
             }
-            else
+            if (res.Data == null)
             {
-                //todo shevamowmo carielze
-                var foodsResponse = await _restaurantService.GetAllFood(req.RestaurantId);
-                var foods = foodsResponse.Data;
-                double total = 0;
-                foreach (OrderItem o in req.Items)
-                {
-                    if (o.Quantity <= 0)
-                    {
-                        return BadRequest();
-                    }
-                    Food f = foods.FirstOrDefault(x => x.Id == o.FoodId);
-                    if (f == null)
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        total += f.Price * o.Quantity;
-                    }
-                }
-                var result = await _orderService.CreateOrder(userId, res.Data.OwnerId, req, total);
-                //todo shecdoma?
-                return Ok(result);
+                return NotFound();
             }
+            var r = await _restaurantService.IsBlocked(userId, req.RestaurantId);
+            if (!r.Success)
+            {
+                //unknown error
+                return Forbid();
+            }
+            if (r.Data)
+            {
+                //dablokilia
+                return Forbid();
+            }
+            //todo shevamowmo carielze
+            var foodsResponse = await _restaurantService.GetAllFood(req.RestaurantId);
+            if (!foodsResponse.Success)
+            {
+                //unknown error
+                return Forbid();
+            }
+            var foods = foodsResponse.Data;
+            double total = 0;
+            foreach (OrderItem o in req.Items)
+            {
+                if (o.Quantity <= 0)
+                {
+                    return BadRequest();
+                }
+                Food f = foods.FirstOrDefault(x => x.Id == o.FoodId);
+                if (f == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    total += f.Price * o.Quantity;
+                }
+            }
+            var result = await _orderService.CreateOrder(userId, res.Data.OwnerId, req, total);
+            if (!result.Success)
+            {
+                //unknown error
+            }
+            return Ok(result);
         }
     }
 }

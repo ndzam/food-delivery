@@ -17,6 +17,8 @@ namespace FoodDeliveryWebApi.Models
         public double TotalPrice { get; set; }
         public OrderStatus Status { get; set; }
         public int Date { get; set; }
+        public bool IsRestaurantDeleted { get; set; }
+        public bool IsUserBlocked { get; set; }
     }
 
     
