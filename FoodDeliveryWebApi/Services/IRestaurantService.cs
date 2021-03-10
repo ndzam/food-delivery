@@ -15,7 +15,7 @@ namespace FoodDeliveryWebApi.Services
 
         Task<ApiResponse<Restaurant>> CreateRestaurantAsync(string useId, RestaurantPostRequest res);
 
-        Task<ApiResponse<Restaurant>> UpdateRestaurant(string id, RestaurantPutRequest res);
+        Task<ApiResponse<Restaurant>> UpdateRestaurant(string id, Restaurant res);
 
         Task<ApiResponse> DeleteRestaurantAsync(string id);
 

@@ -4,6 +4,7 @@ using FoodDeliveryWebApi.Configs;
 using FoodDeliveryWebApi.Constants;
 using Microsoft.Extensions.Options;
 using System.Threading.Tasks;
+using Google.Cloud.Firestore;
 
 namespace FoodDeliveryWebApi.Services
 {
@@ -11,6 +12,7 @@ namespace FoodDeliveryWebApi.Services
     {
         private readonly FirebaseAuthProvider _firebaseAuthProvider;
         private readonly string _connectionString;
+        
 
         public FirebaseService(IOptions<APIConfigs> options)
         {
@@ -35,6 +37,14 @@ namespace FoodDeliveryWebApi.Services
         {
             return new FirebaseClient(_connectionString);
         }
+
+        public FirestoreDb GetFirestoreDb()
+        {
+            var project = "food-delivery-66d65";
+            FirestoreDb db = FirestoreDb.Create(project);
+            return db;
+        }
+        
 
         public string ConvertErrorCode(AuthErrorReason reason)
         {

@@ -10,10 +10,11 @@ namespace FoodDeliveryWebApi.Services
 {
     public interface IOrderService
     {
-        List<Order> GetOrders(string userId);
-        Order GetOrder(string orderId);
-        Order UpdateOrder(string id, OrderPutRequest req);
-        Task<ApiResponse<Order>> CreateOrder(string userId, OrderPostRequest req, Decimal total);
+        Task<ApiResponse<List<Order>>> GetOrders(string userId, string role);
+        Task<ApiResponse<List<Order>>> GetOrdersByRestaurant(string restaurantId);
+        Task<ApiResponse<Order>> GetOrder(string orderId);
+        Task<ApiResponse<Order>> UpdateOrderStatus(string id, Order req);
+        Task<ApiResponse<Order>> CreateOrder(string userId, string restaurantOwnerId, OrderPostRequest req, double total);
 
 
     }

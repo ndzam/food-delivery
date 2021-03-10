@@ -2,13 +2,9 @@
 using FoodDeliveryWebApi.Requests;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using FoodDeliveryWebApi.Constants;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Firebase.Database.Query;
 using FoodDeliveryWebApi.Response;
-using Firebase.Database;
 
 namespace FoodDeliveryWebApi.Services
 {
@@ -24,40 +20,24 @@ namespace FoodDeliveryWebApi.Services
 
         public async Task<ApiResponse<Restaurant>> CreateRestaurantAsync(string userId, RestaurantPostRequest res)
         {
-
             Restaurant r = new Restaurant
             {
-
-                UserId = userId,
+                OwnerId = userId,
                 Name = res.Name,
                 Description = res.Description
             };
-            string ser = JsonConvert.SerializeObject(r, Formatting.Indented, new JsonSerializerSettings
+            var firebase = _firebaseService.GetFirestoreDb();
+            try
             {
-                NullValueHandling = NullValueHandling.Ignore
-            });
-            var firebase = _firebaseService.GetFirebaseClient();
-            try { 
-                var queryResult = await firebase.Child(TableNames.RESTAURANTS).PostAsync(ser);
-                var key = queryResult.Key;
-                Restaurant result = JsonConvert.DeserializeObject<Restaurant>(queryResult.Object);
-                result.Id = key;
+                var queryResult = await firebase.Collection(TableNames.RESTAURANTS).AddAsync(r);
+                r.Id = queryResult.Id;
                 return new ApiResponse<Restaurant>
                 {
                     Success = true,
-                    Data = result
+                    Data = r
                 };
             }
-            /*catch (FirebaseException ex)
-            {
-                return new ApiResponse<Restaurant>
-                {
-                    Success = false,
-                    ErrorCode = ex.InnerException.Message
-                };
-            }*/
-
-            catch
+            catch (Exception e)
             {
                 return new ApiResponse<Restaurant>
                 {
@@ -75,34 +55,17 @@ namespace FoodDeliveryWebApi.Services
                 Description = food.Description,
                 Price = food.Price
             };
-            
-            string ser = JsonConvert.SerializeObject(f, Formatting.Indented, new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore
-            });
-            var firebase = _firebaseService.GetFirebaseClient();
+            var firebase = _firebaseService.GetFirestoreDb();
             try
             {
-                var queryResult = await firebase.Child(TableNames.RESTAURANTS).Child(restaurantId).Child(TableNames.FOODS).PostAsync(ser);
-                var key = queryResult.Key;
-                Food result = JsonConvert.DeserializeObject<Food>(queryResult.Object);
-                result.Id = key;
+                var queryResult = await firebase.Collection(TableNames.RESTAURANTS).Document(restaurantId).Collection(TableNames.FOODS).AddAsync(f);
                 return new ApiResponse<Food>
                 {
                     Success = true,
-                    Data = result
+                    Data = f
                 };
             }
-            /*catch (FirebaseException ex)
-            {
-                return new ApiResponse<Restaurant>
-                {
-                    Success = false,
-                    ErrorCode = ex.InnerException.Message
-                };
-            }*/
-
-            catch
+            catch (Exception e)
             {
                 return new ApiResponse<Food>
                 {
@@ -114,14 +77,16 @@ namespace FoodDeliveryWebApi.Services
 
         public async Task<ApiResponse> DeleteRestaurantAsync(string id)
         {
-            var firebase = _firebaseService.GetFirebaseClient();
-            try {
-                await firebase.Child(TableNames.RESTAURANTS).Child(id).DeleteAsync();
+            var firebase = _firebaseService.GetFirestoreDb();
+            try
+            {
+                await firebase.Collection(TableNames.RESTAURANTS).Document(id).DeleteAsync();
                 return new ApiResponse
                 {
                     Success = true
                 };
-            } catch
+            }
+            catch
             {
                 return new ApiResponse
                 {
@@ -133,10 +98,10 @@ namespace FoodDeliveryWebApi.Services
 
         public async Task<ApiResponse> DeleteFood(string restaurantId, string id)
         {
-            var firebase = _firebaseService.GetFirebaseClient();
+            var firebase = _firebaseService.GetFirestoreDb();
             try
             {
-                await firebase.Child(TableNames.RESTAURANTS).Child(id).Child(TableNames.FOODS).Child(id).DeleteAsync();
+                var res = await firebase.Collection(TableNames.RESTAURANTS).Document(restaurantId).Collection(TableNames.FOODS).Document(id).DeleteAsync();
                 return new ApiResponse
                 {
                     Success = true
@@ -154,16 +119,18 @@ namespace FoodDeliveryWebApi.Services
 
         public async Task<ApiResponse<Restaurant>> GetRestaurant(string id)
         {
-            var firebase = _firebaseService.GetFirebaseClient();
-            try 
+            var firebase = _firebaseService.GetFirestoreDb();
+            try
             {
-                var res = await firebase.Child(TableNames.RESTAURANTS).Child(id).OnceSingleAsync<Restaurant>();
+                var res = await firebase.Collection(TableNames.RESTAURANTS).Document(id).GetSnapshotAsync();
+                Restaurant r = res.ConvertTo<Restaurant>();
                 return new ApiResponse<Restaurant>
                 {
-                    Data = res,
+                    Data = r,
                     Success = true
                 };
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return new ApiResponse<Restaurant>
                 {
@@ -175,13 +142,14 @@ namespace FoodDeliveryWebApi.Services
 
         public async Task<ApiResponse<Food>> GetFood(string restaurantId, string id)
         {
-            var firebase = _firebaseService.GetFirebaseClient();
+            var firebase = _firebaseService.GetFirestoreDb();
             try
             {
-                var res = await firebase.Child(TableNames.RESTAURANTS).Child(restaurantId).Child(TableNames.FOODS).Child(id).OnceSingleAsync<Food>();
+                var res = await firebase.Collection(TableNames.RESTAURANTS).Document(restaurantId).Collection(TableNames.FOODS).Document(id).GetSnapshotAsync();
+                Food f = res.ConvertTo<Food>();
                 return new ApiResponse<Food>
                 {
-                    Data = res,
+                    Data = f,
                     Success = true
                 };
             }
@@ -197,14 +165,15 @@ namespace FoodDeliveryWebApi.Services
 
         public async Task<ApiResponse<List<Restaurant>>> GetAllRestaurant()
         {
-            var firebase = _firebaseService.GetFirebaseClient();
+            var firebase = _firebaseService.GetFirestoreDb();
             try
             {
-                var res = await firebase.Child(TableNames.RESTAURANTS).OnceAsync<Restaurant>();
+                var res = await firebase.Collection(TableNames.RESTAURANTS).GetSnapshotAsync();
                 List<Restaurant> list = new List<Restaurant>();
-                foreach(var v in res){
-                    Restaurant r = v.Object;
-                    r.Id = v.Key;
+                foreach (var v in res)
+                {
+                    Restaurant r = v.ConvertTo<Restaurant>();
+                    r.Id = v.Id;
                     list.Add(r);
                 }
                 return new ApiResponse<List<Restaurant>>
@@ -225,15 +194,15 @@ namespace FoodDeliveryWebApi.Services
 
         public async Task<ApiResponse<List<Food>>> GetAllFood(string restaurantId)
         {
-            var firebase = _firebaseService.GetFirebaseClient();
+            var firebase = _firebaseService.GetFirestoreDb();
             try
             {
-                var res = await firebase.Child(TableNames.RESTAURANTS).Child(restaurantId).Child(TableNames.FOODS).OnceAsync<Food>();
+                var res = await firebase.Collection(TableNames.RESTAURANTS).Document(restaurantId).Collection(TableNames.FOODS).GetSnapshotAsync();
                 List<Food> list = new List<Food>();
                 foreach (var v in res)
                 {
-                    Food r = v.Object;
-                    r.Id = v.Key;
+                    Food r = v.ConvertTo<Food>();
+                    r.Id = v.Id;
                     list.Add(r);
                 }
                 return new ApiResponse<List<Food>>
@@ -252,26 +221,18 @@ namespace FoodDeliveryWebApi.Services
             }
         }
 
-        public async Task<ApiResponse<Restaurant>> UpdateRestaurant(string id, RestaurantPutRequest res)
+        public async Task<ApiResponse<Restaurant>> UpdateRestaurant(string id, Restaurant res)
         {
-            Restaurant r = new Restaurant
-            {
-                Name = res.Name,
-                Description = res.Description
-            };
-            string ser = JsonConvert.SerializeObject(r, Formatting.Indented, new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore
-            });
-            var firebase = _firebaseService.GetFirebaseClient();
+            res.Id = id;
+            var firebase = _firebaseService.GetFirestoreDb();
             try
             {
-                await firebase.Child(TableNames.RESTAURANTS).Child(id).PatchAsync(ser);
-                
+                await firebase.Collection(TableNames.RESTAURANTS).Document(id).SetAsync(res);
+
                 return new ApiResponse<Restaurant>
                 {
                     Success = true,
-                    Data = r
+                    Data = res
                 };
             }
             catch
@@ -292,14 +253,10 @@ namespace FoodDeliveryWebApi.Services
                 Description = req.Description,
                 Price = req.Price
             };
-            string ser = JsonConvert.SerializeObject(food, Formatting.Indented, new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore
-            });
-            var firebase = _firebaseService.GetFirebaseClient();
+            var firebase = _firebaseService.GetFirestoreDb();
             try
             {
-                await firebase.Child(TableNames.RESTAURANTS).Child(restaurantId).Child(TableNames.FOODS).Child(id).PatchAsync(ser);
+                await firebase.Collection(TableNames.RESTAURANTS).Document(restaurantId).Collection(TableNames.FOODS).Document(id).SetAsync(food);
                 return new ApiResponse<Food>
                 {
                     Success = true,

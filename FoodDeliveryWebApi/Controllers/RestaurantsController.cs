@@ -69,21 +69,25 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(string id, [FromBody]RestaurantPutRequest req)
         {
-            //tu adminia?
             var userId = "";
             var role = "";
             var restaurant = await _restaurantService.GetRestaurant(id);
             if(restaurant.Success && restaurant.Data == null)
             {
                 return NotFound();
-            } else if(!role.Equals(UserRoles.ADMIN) && restaurant.Success && !restaurant.Data.UserId.Equals(userId))
-            {
-                return Forbid();
-            } else if (!restaurant.Success)
+            }
+            else if (!restaurant.Success)
             {
                 //return unknown error.
             }
-            var res = await _restaurantService.UpdateRestaurant(id, req);
+            //todo movashoro
+            else if(!restaurant.Data.OwnerId.Equals(userId) && false)
+            {
+                return Forbid();
+            }
+            restaurant.Data.Name = req.Name;
+            restaurant.Data.Description = req.Description;
+            var res = await _restaurantService.UpdateRestaurant(id, restaurant.Data);
             return Ok(res);
         }
 
@@ -141,8 +145,8 @@ namespace FoodDeliveryWebApi.Controllers
         {
             //user tu dablokilia ar unda wamoigos
             //owner tu tavisi araa ar unda wamoigos
-            var res = _restaurantService.GetRestaurant(id);
-            if(res == null)
+            var res = await _restaurantService.GetRestaurant(id);
+            if (res.Success && res.Data == null)
             {
                 return NotFound();
             }
@@ -153,14 +157,32 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [HttpPut("{id}/foods/{foodId}")]
         public async Task<IActionResult> PutFood(string id, string foodId, [FromBody] FoodPutRequest req)
         {
-            /*//unda sheedzlos mxolod owners tavis restoranze
-            if (_restaurantService.GetFood(id, foodId) == null)
+            var userId = "";
+            var role = "";
+            var food = await _restaurantService.GetFood(id, foodId);
+            if (food.Success && food.Data == null)
             {
                 return NotFound();
-            }*/
+            }
+            else if (!food.Success)
+            {
+                //return unknown error.
+            }
+
+            var restaurant = await _restaurantService.GetRestaurant(id);
+            //todo movashoro
+            if (!restaurant.Data.OwnerId.Equals(userId) && false)
+            {
+                return Forbid();
+            } else if (!restaurant.Success)
+            {
+                //return unknown error
+            }
+            
             var res = await _restaurantService.UpdateFood(id, foodId, req);
             return Ok(res);
         }
@@ -177,6 +199,23 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return NotFound();
             }
+            return Ok();
+        }
+
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
+        [HttpPost("{id}/blocks")]
+        public async Task<IActionResult> PostBlock(string id, [FromBody] BlockPostRequest req)
+        {
+            //user tu dablokilia ar unda wamoigos
+            //owner tu tavisi araa ar unda wamoigos
+            //var res = await _restaurantService.GetRestaurant(id);
+            //if (res.Success && res.Data == null)
+            //{
+            //    return NotFound();
+            //}
+            //var food = await _restaurantService.CreateFood(id, req);
             return Ok();
         }
     }

@@ -17,15 +17,11 @@ namespace FoodDeliveryWebApi.Controllers
     public class UsersController : ControllerBase
     {
 
-        private IOrderService _orderService;
         private IUserService _userService;
-        private IRestaurantService _restaurantService;
 
         public UsersController(IUserService userService, IOrderService orderService, IRestaurantService restaurantService)
         {
             _userService = userService;
-            _orderService = orderService;
-            _restaurantService = restaurantService;
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
@@ -115,100 +111,8 @@ namespace FoodDeliveryWebApi.Controllers
         //     return Ok(res);
         // }
 
-        // [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
-        // [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
-        // [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
-        // [HttpGet("{id}/orders/{orderId}")]
-        // public IActionResult GetOrder(string id, string orderId)
-        // {
-        //     //tu owneria da tavis restoranshi gaketebuli shekveta araa ar unda abrunebdes
-        //     //tu useria da tavisi gaketebuli shekveta araa ar unda abrunebdes
-        //     var res = _orderService.GetOrder(orderId);
-        //     if(res == null)
-        //     {
-        //         return NotFound();
-        //     }
-        //     return Ok(res);
-        // }
+        
 
-        // [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
-        // [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
-        // [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
-        // [HttpPut("{id}/orders/{orderId}")]
-        // public IActionResult PutOrder(string id, string orderId, [FromBody]OrderPutRequest req)
-        // {
-        //     //unda ecvlebodes mxolod statusi shemdegi principit da mxolod mflobelisgan
-        //  /*   public enum Status
-        // {
-        //     Placed,
-        //     Canceled,
-        //     Processing,
-        //     Route,
-        //     Delivered,
-        //     Received
-        // }*/
-        //     /*var res = _.GetRestaurant(id);
-        //     if (res == null)
-        //     {
-        //         return NotFound();
-        //     }
-        //     return Ok(res);*/
-        //     return null;
-        // }
-
-         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
-         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
-         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
-        [HttpPost("{id}/orders")]
-         public async Task<IActionResult> PostOrder(string id, [FromBody] OrderPostRequest req)
-         {
-            //yvela sachmeli unda iyos erti restornidan.
-            //aketebs mxolod user aradablokil restoranshi
-            var userId = "";
-            var role = UserRoles.ADMIN;
-            //admin unda iyos? shesamowmebelia dablokiloba.
-            if(role.Equals(UserRoles.ADMIN) || (userId.Equals(id) && role.Equals(UserRoles.USER)))
-            {
-                var res = await _restaurantService.GetRestaurant(req.RestaurantId);
-                if(res.Success && res.Data == null)
-                {
-                    return NotFound();
-                } else if(!res.Success)
-                {
-                    //unknown error
-                    return NotFound();
-                } else
-                {
-                    //todo shevamowmo carielze
-                    var foodsResponse = await _restaurantService.GetAllFood(req.RestaurantId);
-                    var foods = foodsResponse.Data;
-                    Decimal total = 0;
-                    foreach (OrderItem o in req.Items)
-                    {
-                        if(o.Quantity <= 0)
-                        {
-                            return BadRequest();
-                        }
-                        Food f = foods.FirstOrDefault(x => x.Id == o.FoodId);
-                        if (f == null)
-                        {
-                            return NotFound();
-                        }
-                        else
-                        {
-                            total += f.Price * o.Quantity;
-                        }
-                    }
-                    var result = await _orderService.CreateOrder(id, req, total);
-                    //todo shecdoma?
-                    return Ok(result);
-                }
-            } else
-            {
-                return Forbid();
-            }
-         }
+        
     }
 }

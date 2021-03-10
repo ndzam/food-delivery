@@ -161,99 +161,100 @@ namespace FoodDeliveryWebApi.Services
 
         public async Task<ApiResponse> Update(string token, string id, UserPutRequest request)
         {
-            if(request.Role == null)
-            {
-                return new ApiResponse
-                {
-                    Success = false,
-                    ErrorCode = ErrorCodes.INVALID_ROLE
-                };
-            }
-            request.Role = request.Role.ToLowerInvariant();
-            if(request.Role != UserRoles.USER && request.Role != UserRoles.ADMIN && request.Role != UserRoles.OWNER)
-            {
-                return new ApiResponse
-                {
-                    Success = false,
-                    ErrorCode = ErrorCodes.INVALID_ROLE
-                };
-            }
-            try
-            {
-                var auth = await _firebaseService.GetFirebaseAuthProvider().GetUserAsync(token);
-                var firebase = _firebaseService.GetFirebaseClient(token);
-                
-                var queryResult = await firebase
-                    .Child(TableNames.PROFILE)
-                    .OrderBy("UserId")
-                    .StartAt(auth.LocalId)
-                    .LimitToFirst(1)
-                    .OnceAsync<Profile>();
+            //if(request.Role == null)
+            //{
+            //    return new ApiResponse
+            //    {
+            //        Success = false,
+            //        ErrorCode = ErrorCodes.INVALID_ROLE
+            //    };
+            //}
+            //request.Role = request.Role.ToLowerInvariant();
+            //if(request.Role != UserRoles.USER && request.Role != UserRoles.ADMIN && request.Role != UserRoles.OWNER)
+            //{
+            //    return new ApiResponse
+            //    {
+            //        Success = false,
+            //        ErrorCode = ErrorCodes.INVALID_ROLE
+            //    };
+            //}
+            //try
+            //{
+            //    var auth = await _firebaseService.GetFirebaseAuthProvider().GetUserAsync(token);
+            //    var firebase = _firebaseService.GetFirebaseClient(token);
 
-                if(queryResult == null || queryResult.Count == 0)
-                {
-                    return new ApiResponse
-                    {
-                        Success = false,
-                        ErrorCode = ErrorCodes.FORBIDEN
-                    };
-                }
+            //    var queryResult = await firebase
+            //        .Child(TableNames.PROFILE)
+            //        .OrderBy("UserId")
+            //        .StartAt(auth.LocalId)
+            //        .LimitToFirst(1)
+            //        .OnceAsync<Profile>();
 
-                var profile = queryResult.ToList()[0].Object;
-                if(profile.Role != UserRoles.ADMIN)
-                {
-                    return new ApiResponse
-                    {
-                        Success = false,
-                        ErrorCode = ErrorCodes.FORBIDEN
-                    };
-                }
-                
-                var queryResult2 = await firebase
-                    .Child(TableNames.PROFILE)
-                    .OrderBy("UserId")
-                    .StartAt(id)
-                    .LimitToFirst(1)
-                    .OnceAsync<Profile>();
+            //    if(queryResult == null || queryResult.Count == 0)
+            //    {
+            //        return new ApiResponse
+            //        {
+            //            Success = false,
+            //            ErrorCode = ErrorCodes.FORBIDEN
+            //        };
+            //    }
 
-                if(queryResult2 == null || queryResult2.Count == 0)
-                {
-                    return new ApiResponse
-                    {
-                        Success = false,
-                        ErrorCode = ErrorCodes.NOT_FOUND
-                    };
-                }
-                var queryResultObject = queryResult2.ToList()[0];
-                var target = queryResultObject.Object;
+            //    var profile = queryResult.ToList()[0].Object;
+            //    if(profile.Role != UserRoles.ADMIN)
+            //    {
+            //        return new ApiResponse
+            //        {
+            //            Success = false,
+            //            ErrorCode = ErrorCodes.FORBIDEN
+            //        };
+            //    }
 
-                await firebase
-                .Child(TableNames.PROFILE)
-                .Child(queryResultObject.Key)
-                .PatchAsync(Newtonsoft.Json.JsonConvert.SerializeObject(new Profile{
-                    UserId = id,
-                    Role = request.Role
-                }));
-            }
-            catch (Firebase.Auth.FirebaseAuthException ex)
-            {
-                return new ApiResponse
-                {
-                    Success = false,
-                    ErrorCode = _firebaseService.ConvertErrorCode(ex.Reason)
-                };
-            }catch  {
-                return new ApiResponse
-                {
-                    Success = false,
-                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
-                };
-            }
+            //    var queryResult2 = await firebase
+            //        .Child(TableNames.PROFILE)
+            //        .OrderBy("UserId")
+            //        .StartAt(id)
+            //        .LimitToFirst(1)
+            //        .OnceAsync<Profile>();
 
-            return new ApiResponse
-            {
-                Success = true,
-            };
+            //    if(queryResult2 == null || queryResult2.Count == 0)
+            //    {
+            //        return new ApiResponse
+            //        {
+            //            Success = false,
+            //            ErrorCode = ErrorCodes.NOT_FOUND
+            //        };
+            //    }
+            //    var queryResultObject = queryResult2.ToList()[0];
+            //    var target = queryResultObject.Object;
+
+            //    await firebase
+            //    .Child(TableNames.PROFILE)
+            //    .Child(queryResultObject.Key)
+            //    .PatchAsync(Newtonsoft.Json.JsonConvert.SerializeObject(new Profile{
+            //        UserId = id,
+            //        Role = request.Role
+            //    }));
+            //}
+            //catch (Firebase.Auth.FirebaseAuthException ex)
+            //{
+            //    return new ApiResponse
+            //    {
+            //        Success = false,
+            //        ErrorCode = _firebaseService.ConvertErrorCode(ex.Reason)
+            //    };
+            //}catch  {
+            //    return new ApiResponse
+            //    {
+            //        Success = false,
+            //        ErrorCode = ErrorCodes.UNKNOWN_ERROR
+            //    };
+            //}
+
+            //return new ApiResponse
+            //{
+            //    Success = true,
+            //};
+            return null;
         }
     }
 }

@@ -1,11 +1,11 @@
-﻿using FoodDeliveryWebApi.Constants;
+﻿using FoodDeliveryWebApi.Common;
+using FoodDeliveryWebApi.Constants;
 using FoodDeliveryWebApi.Models;
 using FoodDeliveryWebApi.Requests;
 using FoodDeliveryWebApi.Response;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace FoodDeliveryWebApi.Services
@@ -13,27 +13,24 @@ namespace FoodDeliveryWebApi.Services
     public class OrderService : IOrderService
     {
         private readonly IFirebaseService _firebaseService;
-        private IRestaurantService _restaurantService;
-        //private readonly string _apiKey;
-        public OrderService(IFirebaseService firebaseService, IRestaurantService restaurantService)
+        public OrderService(IFirebaseService firebaseService)
         {
-            //_apiKey = options.Value.ApiKey;
             _firebaseService = firebaseService;
-            _restaurantService = restaurantService;
         }
 
-        public async Task<ApiResponse<Order>> CreateOrder(string userId, OrderPostRequest req, Decimal total)
+        public async Task<ApiResponse<Order>> CreateOrder(string userId, string restaurantOwnerId, OrderPostRequest req, double total)
         {  
             List<StatusHistoryItem> statusHistoryItems = new List<StatusHistoryItem>();
             statusHistoryItems.Add(new StatusHistoryItem
             {
                 Status = OrderStatuses.PLACED,
-                Date = DateTime.Now
+                Date = Utils.GetDateEpoch()
             });
             Order order = new Order
             {
                 UserId = userId,
-                date = DateTime.Now,
+                RestaurantOwnerId = restaurantOwnerId,
+                Date = Utils.GetDateEpoch(),
                 Items = req.Items,
                 RestaurantId = req.RestaurantId,
                 Status = new OrderStatus
@@ -47,17 +44,113 @@ namespace FoodDeliveryWebApi.Services
             {
                 NullValueHandling = NullValueHandling.Ignore
             });
+            var jsonObject = Utils.Deserialize(ser);
             try
             {
-                var queryResult = await _firebaseService.GetFirebaseClient().Child(TableNames.ORDERS).PostAsync(ser);
-                var key = queryResult.Key;
-                Order result = JsonConvert.DeserializeObject<Order>(queryResult.Object);
+                var queryResult = await _firebaseService.GetFirestoreDb().Collection(TableNames.ORDERS).AddAsync(jsonObject);
+                var key = queryResult.Id;
+                order.OrderId = key;
                 return new ApiResponse<Order>
                 {
                     Success = true,
-                    Data = result
+                    Data = order
                 };
-            } catch
+            } catch (Exception e)
+            {
+                return new ApiResponse<Order>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
+        }
+
+        public async Task<ApiResponse<Order>> GetOrder(string orderId)
+        {
+            var firebase = _firebaseService.GetFirestoreDb();
+            try
+            {
+                var res = await firebase.Collection(TableNames.ORDERS).Document(orderId).GetSnapshotAsync();
+                Dictionary<string, object> dic = res.ToDictionary();
+                var json = JsonConvert.SerializeObject(dic, Newtonsoft.Json.Formatting.Indented);
+                var order = JsonConvert.DeserializeObject<Order>(json);
+                return new ApiResponse<Order>
+                {
+                    Data = order,
+                    Success = true
+                };
+            }
+            catch (Exception e)
+            {
+                return new ApiResponse<Order>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
+        }
+
+        public async Task<ApiResponse<List<Order>>> GetOrders(string userId, string role)
+        {
+            return await GetOrdersByField(userId, role.Equals(UserRoles.USER) ? TableNames.ORDERS_USER_ID : TableNames.ORDERS_RESTAURANT_OWNER_ID);
+        }
+
+        public async Task<ApiResponse<List<Order>>> GetOrdersByRestaurant(string restaurantId)
+        {
+            return await GetOrdersByField(restaurantId, TableNames.ORDERS_RESTAURANT_ID);
+        }
+
+        private async Task<ApiResponse<List<Order>>> GetOrdersByField(string id, string field)
+        {
+            var firebase = _firebaseService.GetFirestoreDb();
+            try
+            {
+                var res = await firebase.Collection(TableNames.ORDERS).WhereEqualTo(field, id).OrderByDescending(TableNames.ORDERS_DATE).GetSnapshotAsync();
+                List<Order> list = new List<Order>();
+                foreach (var v in res)
+                {
+                    Dictionary<string, object> dic = v.ToDictionary();
+                    var json = JsonConvert.SerializeObject(dic, Newtonsoft.Json.Formatting.Indented);
+                    var r = JsonConvert.DeserializeObject<Order>(json);
+                    r.OrderId = v.Id;
+                    list.Add(r);
+                }
+                return new ApiResponse<List<Order>>
+                {
+                    Data = list,
+                    Success = true
+                };
+            }
+            catch (Exception e)
+            {
+                return new ApiResponse<List<Order>>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
+        }
+
+        public async Task<ApiResponse<Order>> UpdateOrderStatus(string id, Order req)
+        {
+            
+            string ser = JsonConvert.SerializeObject(req, Formatting.Indented, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+            var jsonObject = Utils.Deserialize(ser);
+            var firebase = _firebaseService.GetFirestoreDb();
+            try
+            {
+                await firebase.Collection(TableNames.ORDERS).Document(id).SetAsync(jsonObject);
+
+                return new ApiResponse<Order>
+                {
+                    Success = true,
+                    Data = req
+                };
+            }
+            catch
             {
                 return new ApiResponse<Order>
                 {
@@ -68,19 +161,6 @@ namespace FoodDeliveryWebApi.Services
         }
 
 
-        public Order GetOrder(string orderId)
-        {
-            throw new NotImplementedException();
-        }
 
-        public List<Order> GetOrders(string userId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Order UpdateOrder(string id, OrderPutRequest req)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

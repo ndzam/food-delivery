@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Google.Cloud.Firestore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,18 +7,16 @@ using System.Threading.Tasks;
 
 namespace FoodDeliveryWebApi.Models
 {
+    [FirestoreData]
     public class Food
     {
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Id { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string RestaurantId { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [FirestoreProperty]
         public string Name { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [FirestoreProperty]
         public string Description { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public decimal Price { get; set; }
+        [FirestoreProperty]
+        public double Price { get; set; }
 
     }
 }
