@@ -1,0 +1,35 @@
+{
+    "signIn": {
+        "welcome": "Welcome to Food App",
+        "tip": "Please, sign in to your account"
+    },
+    "signUp": {
+        "welcome": "Welcome to Food App",
+        "tip": "Let's create your new account",
+        "haveAccount": "Already have an account?"
+    },
+    "labels": {
+        "email": "Email",
+        "name": "Display name",
+        "password": "Password",
+        "confirmPassword": "Confirm password",
+        "signIn": "Sign In",
+        "signUp": "Sign Up"
+    },
+    "errorCodes": {
+        "UNKNOWN_ERROR": "aaa",
+        "ACCOUNT_EXISTS": "Account already exists",
+        "PASSWORDS_DONT_MATCH": "Passwords don't match",
+        "WRONG_ACCOUNT": "Such account not found",
+        "WRONG_PASSWORD": "Wrong password",
+        "INVALID_EMAIL": "This is not a valid email",
+        "MISSING_PASSWORD": "Missing password",
+        "MISSING_EMAIL": "Missing email",
+        "WEAK_PASSWORD": "Weak password",
+        "INVALID_TOKEN": "Invalid token",
+        "FORBIDEN": "aaa",
+        "INVALID_NAME": "This is not a valid name",
+        "NOT_FOUND": "aaa",
+        "INVALID_ROLE": "Invalid role"
+    }
+}

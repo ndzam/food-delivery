@@ -1,15 +1,20 @@
 import React from 'react';
-import { Switch, useHistory, Route } from 'react-router-dom';
-import { AppRoutes } from './constants/AppRoutes';
-import { SignInPage } from './pages/SignInPage';
-import { SignUpPage } from './pages/SignUpPage';
+import { useSelector } from 'react-redux';
+import { SecuredRoutes } from './routes/SecuredRoutes';
+import { PublicRoutes } from './routes/PublicRoutes';
+import { createBrowserHistory } from 'history';
+import { AppState } from './store';
+
+const history = createBrowserHistory();
 
 export const App: React.FC = () => {
-    return (
-        <Switch>
-            <Route exact path="/" component={SignInPage} />
-            <Route exact path={AppRoutes.SignIn} component={SignInPage} />
-            <Route exact path={AppRoutes.SignUp} component={SignUpPage} />
-        </Switch>
-    );
+    const { user } = useSelector((state: AppState) => {
+        return {
+            user: state.UserStore.user,
+        };
+    });
+    if (user) {
+        return <SecuredRoutes history={history} />;
+    }
+    return <PublicRoutes history={history} />;
 };
