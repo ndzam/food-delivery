@@ -3,15 +3,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
-using FoodDeliveryWebApi.Models;
 using FoodDeliveryWebApi.Services;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-using System;
 using FoodDeliveryWebApi.Configs;
-using Microsoft.AspNetCore.Authentication.Negotiate;
-using FoodDeliveryWebApi.AuthorizationHandlers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace FoodDeliveryWebApi
 {
@@ -35,8 +32,7 @@ namespace FoodDeliveryWebApi
                 options.AddPolicy(name: MyAllowSpecificOrigins,
                                   builder =>
                                   {
-                                      builder.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod();
-    
+                                      builder.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod(); 
                                   });
             });
 
@@ -46,20 +42,20 @@ namespace FoodDeliveryWebApi
             {
                 Credential = GoogleCredential.GetApplicationDefault(),
             });
-            Console.WriteLine(defaultApp.Name);
 
-            services.AddAuthentication(options =>
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {
-                options.DefaultScheme
-                    = "FirebaseToken";
-            })
-            .AddScheme<ValidateAuthenticationSchemeOptions, FirebaseAuthenticationHandler>
-                    ("FirebaseToken", op => { });
-
-
-
+                options.Authority = "https://securetoken.google.com/food-delivery-66d65";
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = "https://securetoken.google.com/food-delivery-66d65",
+                    ValidateAudience = true,
+                    ValidAudience = "food-delivery-66d65",
+                    ValidateLifetime = true
+                };
+            });
             services.AddTransient<IFirebaseService, FirebaseService>();
-            
             services.AddTransient<IOrderService, OrderService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IRestaurantService, RestaurantService>();
@@ -78,6 +74,8 @@ namespace FoodDeliveryWebApi
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseCors(MyAllowSpecificOrigins);
 

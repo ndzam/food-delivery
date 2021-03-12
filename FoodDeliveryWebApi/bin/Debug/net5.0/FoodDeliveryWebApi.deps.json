@@ -27,8 +27,8 @@
         "dependencies": {
           "FirebaseAdmin": "2.0.0",
           "FirebaseAuthentication.net": "3.6.0",
-          "FirebaseDatabase.net": "4.0.6",
           "Google.Cloud.Firestore": "2.3.0",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "5.0.4",
           "Microsoft.AspNetCore.Authentication.Negotiate": "5.0.3",
           "Microsoft.EntityFrameworkCore.InMemory": "6.0.0-preview.1.21102.2",
           "Newtonsoft.Json": "13.0.1-beta1",
@@ -341,22 +341,6 @@
           "lib/netstandard1.1/Firebase.Auth.dll": {}
         }
       },
-      "FirebaseDatabase.net/4.0.6": {
-        "dependencies": {
-          "LiteDB": "4.1.4",
-          "Newtonsoft.Json": "13.0.1-beta1",
-          "System.Reactive": "4.0.0"
-        },
-        "runtime": {
-          "lib/netstandard2.0/Firebase.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
-          }
-        },
-        "compile": {
-          "lib/netstandard2.0/Firebase.dll": {}
-        }
-      },
       "Google.Api.CommonProtos/2.2.0": {
         "dependencies": {
           "Google.Protobuf": "3.13.0"
@@ -621,19 +605,18 @@
           "lib/netstandard2.0/Grpc.Core.Api.dll": {}
         }
       },
-      "LiteDB/4.1.4": {
+      "Microsoft.AspNetCore.Authentication.JwtBearer/5.0.4": {
         "dependencies": {
-          "System.Reflection": "4.3.0",
-          "System.Reflection.TypeExtensions": "4.3.0"
+          "Microsoft.IdentityModel.Protocols.OpenIdConnect": "6.7.1"
         },
         "runtime": {
-          "lib/netstandard2.0/LiteDB.dll": {
-            "assemblyVersion": "4.1.4.0",
-            "fileVersion": "4.1.4.0"
+          "lib/net5.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll": {
+            "assemblyVersion": "5.0.4.0",
+            "fileVersion": "5.0.421.11815"
           }
         },
         "compile": {
-          "lib/netstandard2.0/LiteDB.dll": {}
+          "lib/net5.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll": {}
         }
       },
       "Microsoft.AspNetCore.Authentication.Negotiate/5.0.3": {
@@ -875,6 +858,36 @@
         },
         "compile": {
           "lib/netstandard2.0/Microsoft.IdentityModel.Logging.dll": {}
+        }
+      },
+      "Microsoft.IdentityModel.Protocols/6.7.1": {
+        "dependencies": {
+          "Microsoft.IdentityModel.Logging": "6.8.0",
+          "Microsoft.IdentityModel.Tokens": "6.8.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.IdentityModel.Protocols.dll": {
+            "assemblyVersion": "6.7.1.0",
+            "fileVersion": "6.7.1.10630"
+          }
+        },
+        "compile": {
+          "lib/netstandard2.0/Microsoft.IdentityModel.Protocols.dll": {}
+        }
+      },
+      "Microsoft.IdentityModel.Protocols.OpenIdConnect/6.7.1": {
+        "dependencies": {
+          "Microsoft.IdentityModel.Protocols": "6.7.1",
+          "System.IdentityModel.Tokens.Jwt": "6.8.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll": {
+            "assemblyVersion": "6.7.1.0",
+            "fileVersion": "6.7.1.10630"
+          }
+        },
+        "compile": {
+          "lib/netstandard2.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll": {}
         }
       },
       "Microsoft.IdentityModel.Tokens/6.8.0": {
@@ -1414,20 +1427,6 @@
           "System.Threading": "4.3.0"
         }
       },
-      "System.Reactive/4.0.0": {
-        "dependencies": {
-          "System.Runtime.InteropServices.WindowsRuntime": "4.3.0"
-        },
-        "runtime": {
-          "lib/netstandard2.0/System.Reactive.dll": {
-            "assemblyVersion": "4.0.0.0",
-            "fileVersion": "4.0.0.398"
-          }
-        },
-        "compile": {
-          "lib/netstandard2.0/System.Reactive.dll": {}
-        }
-      },
       "System.Reflection/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "5.0.0",
@@ -1541,20 +1540,6 @@
           "System.Runtime.InteropServices": "4.3.0",
           "System.Threading": "4.3.0",
           "runtime.native.System": "4.3.0"
-        }
-      },
-      "System.Runtime.InteropServices.WindowsRuntime/4.3.0": {
-        "dependencies": {
-          "System.Runtime": "4.3.0"
-        },
-        "runtime": {
-          "lib/netstandard1.3/System.Runtime.InteropServices.WindowsRuntime.dll": {
-            "assemblyVersion": "4.0.2.0",
-            "fileVersion": "4.6.24705.1"
-          }
-        },
-        "compile": {
-          "ref/netstandard1.0/System.Runtime.InteropServices.WindowsRuntime.dll": {}
         }
       },
       "System.Runtime.Numerics/4.3.0": {
@@ -3387,13 +3372,6 @@
       "path": "firebaseauthentication.net/3.6.0",
       "hashPath": "firebaseauthentication.net.3.6.0.nupkg.sha512"
     },
-    "FirebaseDatabase.net/4.0.6": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-BxKjW5nPqPhMKaGof3nrPUnHHMqvb7MYf5Cd611eMPsf8M9hcAMbjTu/kturPRdXz4NAMQXvkyaoQzFt7ud9Qg==",
-      "path": "firebasedatabase.net/4.0.6",
-      "hashPath": "firebasedatabase.net.4.0.6.nupkg.sha512"
-    },
     "Google.Api.CommonProtos/2.2.0": {
       "type": "package",
       "serviceable": true,
@@ -3499,12 +3477,12 @@
       "path": "grpc.core.api/2.31.0",
       "hashPath": "grpc.core.api.2.31.0.nupkg.sha512"
     },
-    "LiteDB/4.1.4": {
+    "Microsoft.AspNetCore.Authentication.JwtBearer/5.0.4": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-g4g9JlHzRBZl+Gd2UbiRdszZ7t8wozU2wX7+5xY5uE79tmcgcDhha+ubAP84G1VLbwQmhBGCzRfIx+epLmJciQ==",
-      "path": "litedb/4.1.4",
-      "hashPath": "litedb.4.1.4.nupkg.sha512"
+      "sha512": "sha512-gJ4v5Sh6AIzaz3okQ8pGuigTYfWAefaWfTobqU0YCKdsDMTUA1aAvcnVYqYUsb16vGcaVyWIBd4L8G9Ya5oU6w==",
+      "path": "microsoft.aspnetcore.authentication.jwtbearer/5.0.4",
+      "hashPath": "microsoft.aspnetcore.authentication.jwtbearer.5.0.4.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Authentication.Negotiate/5.0.3": {
       "type": "package",
@@ -3645,6 +3623,20 @@
       "sha512": "sha512-Rfh/p4MaN4gkmhPxwbu8IjrmoDncGfHHPh1sTnc0AcM/Oc39/fzC9doKNWvUAjzFb8LqA6lgZyblTrIsX/wDXg==",
       "path": "microsoft.identitymodel.logging/6.8.0",
       "hashPath": "microsoft.identitymodel.logging.6.8.0.nupkg.sha512"
+    },
+    "Microsoft.IdentityModel.Protocols/6.7.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-DVGYIRUK3TkCTmz0IgBzWUE55CDNfLtXil1FgSbgHI7hi2fP2pz4tiTAno/5O/hdVwAzV+HtCQtFi7xW8smaHw==",
+      "path": "microsoft.identitymodel.protocols/6.7.1",
+      "hashPath": "microsoft.identitymodel.protocols.6.7.1.nupkg.sha512"
+    },
+    "Microsoft.IdentityModel.Protocols.OpenIdConnect/6.7.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-99gA+E6ZOCqySrT80Yh6wrfjJfeMxDisdAcA5Q66zHxMPY5Gzc8aT2Ldzu0GP1sADv/o3yI1Gc3P1GHXlXAVVQ==",
+      "path": "microsoft.identitymodel.protocols.openidconnect/6.7.1",
+      "hashPath": "microsoft.identitymodel.protocols.openidconnect.6.7.1.nupkg.sha512"
     },
     "Microsoft.IdentityModel.Tokens/6.8.0": {
       "type": "package",
@@ -4045,13 +4037,6 @@
       "path": "system.objectmodel/4.3.0",
       "hashPath": "system.objectmodel.4.3.0.nupkg.sha512"
     },
-    "System.Reactive/4.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-yaVAxT2Yl28p9+DupGwj2oPbIOYZUQimOQ+n7N7vML2oofIRj9BmcfD7DHc6FLrNah65EigOgG6U9VnwWEyz5g==",
-      "path": "system.reactive/4.0.0",
-      "hashPath": "system.reactive.4.0.0.nupkg.sha512"
-    },
     "System.Reflection/4.3.0": {
       "type": "package",
       "serviceable": true,
@@ -4149,13 +4134,6 @@
       "sha512": "sha512-cbz4YJMqRDR7oLeMRbdYv7mYzc++17lNhScCX0goO2XpGWdvAt60CGN+FHdePUEHCe/Jy9jUlvNAiNdM+7jsOw==",
       "path": "system.runtime.interopservices.runtimeinformation/4.3.0",
       "hashPath": "system.runtime.interopservices.runtimeinformation.4.3.0.nupkg.sha512"
-    },
-    "System.Runtime.InteropServices.WindowsRuntime/4.3.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-J4GUi3xZQLUBasNwZnjrffN8i5wpHrBtZoLG+OhRyGo/+YunMRWWtwoMDlUAIdmX0uRfpHIBDSV6zyr3yf00TA==",
-      "path": "system.runtime.interopservices.windowsruntime/4.3.0",
-      "hashPath": "system.runtime.interopservices.windowsruntime.4.3.0.nupkg.sha512"
     },
     "System.Runtime.Numerics/4.3.0": {
       "type": "package",

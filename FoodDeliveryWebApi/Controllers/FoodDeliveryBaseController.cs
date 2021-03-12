@@ -1,10 +1,6 @@
-﻿using FoodDeliveryWebApi.Constants;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace FoodDeliveryWebApi.Controllers
 {
@@ -14,7 +10,7 @@ namespace FoodDeliveryWebApi.Controllers
         public string Role 
         { 
             get {
-                var roleClaim = User.Claims.Where(x => x.Type == Claims.ROLE)
+                var roleClaim = User.Claims.Where(x => x.Type == ClaimTypes.Role)
                  .FirstOrDefault();
                 if(roleClaim == null || roleClaim.Value == null)
                 {
@@ -29,7 +25,7 @@ namespace FoodDeliveryWebApi.Controllers
             get
             {
                 
-                var roleClaim = User.Claims.Where(x => x.Type == Claims.USER_ID)
+                var roleClaim = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier)
                  .FirstOrDefault();
                 if (roleClaim == null || roleClaim.Value == null)
                 {

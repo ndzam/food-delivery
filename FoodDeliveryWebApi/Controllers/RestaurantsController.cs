@@ -5,9 +5,6 @@ using FoodDeliveryWebApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace FoodDeliveryWebApi.Controllers
@@ -28,7 +25,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
-        [Authorize(AuthenticationSchemes ="FirebaseToken")]
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
@@ -67,7 +64,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] RestaurantFilter filter)
         {
@@ -103,7 +100,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody]RestaurantPostRequest req)
         {
@@ -125,7 +122,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(string id, [FromBody]RestaurantPutRequest req)
         {
@@ -157,7 +154,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsync(string id)
         {
@@ -188,7 +185,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpGet("{id}/foods")]
         public async Task<IActionResult> GetFoods(string id)
         {
@@ -233,7 +230,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpGet("{id}/foods/{foodId}")]
         public async Task<IActionResult> GetFood(string id, string foodId)
         {
@@ -283,7 +280,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpPost("{id}/foods")]
         public async Task<IActionResult> PostFood(string id, [FromBody] FoodPostRequest req)
         {
@@ -322,7 +319,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpPut("{id}/foods/{foodId}")]
         public async Task<IActionResult> PutFood(string id, string foodId, [FromBody] FoodPutRequest req)
         {
@@ -362,7 +359,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpDelete("{id}/foods/{foodId}")]
         public async Task<IActionResult> DeleteFood(string id, string foodId)
         {
@@ -396,7 +393,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpPost("{id}/blocks")]
         public async Task<IActionResult> PostBlock(string id, [FromBody] BlockPostRequest req)
         {

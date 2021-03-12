@@ -33,7 +33,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] OrderFilter filter)
         {
@@ -69,7 +69,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetOrder(string orderId)
         {
@@ -114,7 +114,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpPut("{id}/status")]
         public async Task<IActionResult> PutOrderStatus(string id, [FromBody]OrderStatusPutRequest req)
         {
@@ -180,7 +180,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = "FirebaseToken")]
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> PostOrder([FromBody] OrderPostRequest req)
         {
