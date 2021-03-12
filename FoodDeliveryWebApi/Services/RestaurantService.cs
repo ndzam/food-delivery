@@ -6,6 +6,7 @@ using FoodDeliveryWebApi.Constants;
 using System.Threading.Tasks;
 using FoodDeliveryWebApi.Response;
 using Google.Cloud.Firestore;
+using FoodDeliveryWebApi.Filters;
 
 namespace FoodDeliveryWebApi.Services
 {
@@ -221,18 +222,60 @@ namespace FoodDeliveryWebApi.Services
             return firebase.Collection(TableNames.RESTAURANTS);
         }
 
-        public async Task<ApiResponse<List<Restaurant>>> GetAllRestaurant(string userId, string role)
+        public async Task<ApiResponse<List<Restaurant>>> GetAllRestaurant(string userId, string role, RestaurantFilter filter)
         {
-            Query query = getAllRestaurantsReference(userId, role);
+            List<Restaurant> list = new List<Restaurant>();
             try
             {
-                var res = await query.GetSnapshotAsync();
-                List<Restaurant> list = new List<Restaurant>();
-                foreach (var v in res)
+                DocumentSnapshot last = null;
+                if (filter.LastId != null && !filter.LastId.Equals(""))
                 {
-                    Restaurant r = v.ConvertTo<Restaurant>();
-                    r.Id = v.Id;
-                    list.Add(r);
+                    last = await _firebaseService.GetFirestoreDb().Collection(TableNames.RESTAURANTS).Document(filter.LastId).GetSnapshotAsync();
+                }
+                while (true)
+                {
+                    Query query = getAllRestaurantsReference(userId, role);
+                    query = query.OrderBy(TableNames.RESTAURANTS_NAME);
+                    if(filter.Name != null && !filter.Name.Equals(""))
+                    {
+                        query = query.WhereGreaterThanOrEqualTo(TableNames.RESTAURANTS_NAME, filter.Name).WhereLessThanOrEqualTo(TableNames.RESTAURANTS_NAME, filter.Name + Constants.Unicodes.HIGHEST);
+                    }
+                    if (last != null)
+                    {
+                        query = query.StartAfter(last);
+                    }
+                    query = query.Limit(filter.Limit);
+                    var res = await query.GetSnapshotAsync();
+                    int k = res.Count;
+                    if(res.Count == 0)
+                    {
+                        //boloa
+                        break;
+                    }
+                    foreach (var v in res)
+                    {
+                        last = v;
+                        if (UserRoles.USER.Equals(role))
+                        {
+                            var blocked = await IsBlocked(userId, v.Id);
+                            if (blocked.Data)
+                            {
+                                continue;
+                            }
+                        }
+                        Restaurant r = v.ConvertTo<Restaurant>();
+                        r.Id = v.Id;
+                        list.Add(r);
+                        if (list.Count == filter.Limit) break;
+                        //boloa
+                        if (k < filter.Limit) break;
+                    }
+                    if (UserRoles.OWNER.Equals(role))
+                    {
+                        break;
+                    }
+                    if (list.Count == filter.Limit) break;
+
                 }
                 return new ApiResponse<List<Restaurant>>
                 {

@@ -6,6 +6,7 @@ namespace FoodDeliveryWebApi.Constants
         public const string ORDERS = "orders";
         public const string RESTAURANTS = "restaurants";
         public const string RESTAURANTS_OWNER_ID = "OwnerId";
+        public const string RESTAURANTS_NAME = "Name";
         public const string FOODS = "foods";
         public const string BLOCKS = "blocks";
         public const string BLOCKS_USER_ID = "UserId";

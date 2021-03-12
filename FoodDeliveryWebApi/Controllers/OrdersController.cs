@@ -1,8 +1,10 @@
 ﻿using FoodDeliveryWebApi.Common;
 using FoodDeliveryWebApi.Constants;
+using FoodDeliveryWebApi.Filters;
 using FoodDeliveryWebApi.Models;
 using FoodDeliveryWebApi.Requests;
 using FoodDeliveryWebApi.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -29,27 +31,44 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get([FromQuery] OrderFilter filter)
         {
-            var userId = "fshdsu1";
-            var role = "user";
-            var res = await _orderService.GetOrders(userId, role);
-            
-            if (res.Success)
+            if (filter.Limit > FilterConstants.MAX_LIMIT || filter.Limit < 1)
             {
-                var order = res.Data;
-                
-                return Ok(res);
+                //es unda iyos?
+                return BadRequest();
             }
-            //unknown error
-            return BadRequest();
+            //tu filtris id ar aris...
+            if (filter.LastId != null && !filter.LastId.Equals(""))
+            {
+                var r = await _orderService.GetOrder(filter.LastId);
+                if (!r.Success)
+                {
+                    return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+                }
+                if (r.Data == null)
+                {
+                    //es unda?
+                    return NotFound();
+                }
+            }
+            var userId = "J7nV5vBerlb4NCMY67kUi7cSveN2";
+            var userRole = UserRoles.USER;
+            var res = await _orderService.GetOrders(userId, userRole, filter);
+            if (!res.Success)
+            {
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
+            return Ok(res);
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetOrder(string orderId)
         {
@@ -59,7 +78,7 @@ namespace FoodDeliveryWebApi.Controllers
             var res = await _orderService.GetOrder(orderId);
             if (!res.Success)
             {
-                //unknown error
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
             if (res.Success && res.Data == null)
             {
@@ -74,7 +93,7 @@ namespace FoodDeliveryWebApi.Controllers
             var v = await _restaurantService.GetRestaurant(order.RestaurantId);
             if (!v.Success)
             {
-                //unknown error
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
             res.Data.IsRestaurantDeleted = v.Data == null;
             if (!res.Data.IsRestaurantDeleted)
@@ -82,7 +101,7 @@ namespace FoodDeliveryWebApi.Controllers
                 var k = await _restaurantService.IsBlocked(res.Data.UserId, res.Data.RestaurantId);
                 if (!k.Success)
                 {
-                    //unknown error
+                    return new StatusCodeResult(StatusCodes.Status500InternalServerError);
                 }
                 res.Data.IsUserBlocked = k.Data;
             } else
@@ -92,6 +111,7 @@ namespace FoodDeliveryWebApi.Controllers
             return Ok(res);
         }
 
+        //todo
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
@@ -166,9 +186,11 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [HttpPost]
         public async Task<IActionResult> PostOrder([FromBody] OrderPostRequest req)
         {
+            //amovigo tokenidan
             var userId = "fshdsu1";
             var role = UserRoles.USER;
             if (!role.Equals(UserRoles.USER))
@@ -178,8 +200,7 @@ namespace FoodDeliveryWebApi.Controllers
             var res = await _restaurantService.GetRestaurant(req.RestaurantId);
             if (!res.Success)
             {
-                //unknown error
-                return NotFound();
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
             if (res.Data == null)
             {
@@ -188,20 +209,16 @@ namespace FoodDeliveryWebApi.Controllers
             var r = await _restaurantService.IsBlocked(userId, req.RestaurantId);
             if (!r.Success)
             {
-                //unknown error
-                return Forbid();
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
             if (r.Data)
             {
-                //dablokilia
                 return Forbid();
             }
-            //todo shevamowmo carielze
             var foodsResponse = await _restaurantService.GetAllFood(req.RestaurantId);
             if (!foodsResponse.Success)
             {
-                //unknown error
-                return Forbid();
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
             var foods = foodsResponse.Data;
             double total = 0;
@@ -224,8 +241,9 @@ namespace FoodDeliveryWebApi.Controllers
             var result = await _orderService.CreateOrder(userId, res.Data.OwnerId, req, total);
             if (!result.Success)
             {
-                //unknown error
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
+            //error code?
             return Ok(result);
         }
     }

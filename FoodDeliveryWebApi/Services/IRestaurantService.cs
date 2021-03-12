@@ -1,4 +1,5 @@
-﻿using FoodDeliveryWebApi.Models;
+﻿using FoodDeliveryWebApi.Filters;
+using FoodDeliveryWebApi.Models;
 using FoodDeliveryWebApi.Requests;
 using FoodDeliveryWebApi.Response;
 using System;
@@ -10,7 +11,7 @@ namespace FoodDeliveryWebApi.Services
 {
     public interface IRestaurantService
     {
-        Task<ApiResponse<List<Restaurant>>> GetAllRestaurant(string userId, string role);
+        Task<ApiResponse<List<Restaurant>>> GetAllRestaurant(string userId, string role, RestaurantFilter filter);
         Task<ApiResponse<Restaurant>> GetRestaurant(string id);
 
         Task<ApiResponse<Restaurant>> CreateRestaurantAsync(string useId, RestaurantPostRequest res);

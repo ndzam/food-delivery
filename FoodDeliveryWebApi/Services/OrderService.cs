@@ -1,8 +1,10 @@
 ﻿using FoodDeliveryWebApi.Common;
 using FoodDeliveryWebApi.Constants;
+using FoodDeliveryWebApi.Filters;
 using FoodDeliveryWebApi.Models;
 using FoodDeliveryWebApi.Requests;
 using FoodDeliveryWebApi.Response;
+using Google.Cloud.Firestore;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -90,22 +92,32 @@ namespace FoodDeliveryWebApi.Services
             }
         }
 
-        public async Task<ApiResponse<List<Order>>> GetOrders(string userId, string role)
+        public async Task<ApiResponse<List<Order>>> GetOrders(string userId, string role, OrderFilter filter)
         {
-            return await GetOrdersByField(userId, role.Equals(UserRoles.USER) ? TableNames.ORDERS_USER_ID : TableNames.ORDERS_RESTAURANT_OWNER_ID);
+            return await GetOrdersByField(userId, role.Equals(UserRoles.USER) ? TableNames.ORDERS_USER_ID : TableNames.ORDERS_RESTAURANT_OWNER_ID, filter);
         }
 
-        public async Task<ApiResponse<List<Order>>> GetOrdersByRestaurant(string restaurantId)
+        public async Task<ApiResponse<List<Order>>> GetOrdersByRestaurant(string restaurantId, OrderFilter filter)
         {
-            return await GetOrdersByField(restaurantId, TableNames.ORDERS_RESTAURANT_ID);
+            return await GetOrdersByField(restaurantId, TableNames.ORDERS_RESTAURANT_ID, filter);
         }
 
-        private async Task<ApiResponse<List<Order>>> GetOrdersByField(string id, string field)
+        private async Task<ApiResponse<List<Order>>> GetOrdersByField(string id, string field, OrderFilter filter)
         {
             var firebase = _firebaseService.GetFirestoreDb();
             try
             {
-                var res = await firebase.Collection(TableNames.ORDERS).WhereEqualTo(field, id).OrderByDescending(TableNames.ORDERS_DATE).GetSnapshotAsync();
+                Query query = firebase.Collection(TableNames.ORDERS).WhereEqualTo(field, id).OrderByDescending(TableNames.ORDERS_DATE);
+                DocumentSnapshot last = null;
+                if (filter.LastId != null && !filter.LastId.Equals(""))
+                {
+                    last = await firebase.Collection(TableNames.ORDERS).Document(filter.LastId).GetSnapshotAsync();
+                }
+                if(last != null)
+                {
+                    query = query.StartAfter(last);
+                }
+                var res = await query.Limit(filter.Limit).GetSnapshotAsync();
                 List<Order> list = new List<Order>();
                 foreach (var v in res)
                 {
