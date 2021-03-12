@@ -2,6 +2,7 @@
 using FoodDeliveryWebApi.Filters;
 using FoodDeliveryWebApi.Requests;
 using FoodDeliveryWebApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -13,7 +14,7 @@ namespace FoodDeliveryWebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RestaurantsController : ControllerBase
+    public class RestaurantsController : FoodDeliveryBaseController
     {
         private IRestaurantService _restaurantService;
 
@@ -27,12 +28,10 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
+        [Authorize(AuthenticationSchemes ="FirebaseToken")]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
-            //amovigo tokenidan
-            var userRole = UserRoles.USER;
-            var userId = "";
             var res = await _restaurantService.GetRestaurant(id);
             if(res.Success && res.Data == null)
             {
@@ -42,16 +41,15 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            if (userRole.Equals(UserRoles.OWNER))
+            if (Role.Equals(UserRoles.OWNER))
             {
-                if (!res.Data.OwnerId.Equals(userId))
+                if (!res.Data.OwnerId.Equals(UserId))
                 {
-                    //no permission
-                    //return Forbid();
+                    return Forbid();
                 }
             } else
             {
-                var v = await _restaurantService.IsBlocked(userId, id);
+                var v = await _restaurantService.IsBlocked(UserId, id);
                 if (v.Success && v.Data)
                 {
                     //blocked
@@ -69,6 +67,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] RestaurantFilter filter)
         {
@@ -92,9 +91,7 @@ namespace FoodDeliveryWebApi.Controllers
                     return NotFound();
                 }
             }
-            var userId = "J7nV5vBerlb4NCMY67kUi7cSveN2";
-            var userRole = UserRoles.USER;
-            var res = await _restaurantService.GetAllRestaurant(userId, userRole, filter);
+            var res = await _restaurantService.GetAllRestaurant(UserId, Role, filter);
             if (!res.Success)
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
@@ -106,17 +103,15 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody]RestaurantPostRequest req)
         {
-            //amovigo tokenidan
-            var role = UserRoles.OWNER;
-            string userId = "J7nV5vBerlb4NCMY67kUi7cSveN2";
-            if (!role.Equals(UserRoles.OWNER))
+            if (!Role.Equals(UserRoles.OWNER))
             {
                 return Forbid();
             }
-            var res = await _restaurantService.CreateRestaurantAsync(userId, req);
+            var res = await _restaurantService.CreateRestaurantAsync(UserId, req);
             if (!res.Success)
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
@@ -130,12 +125,10 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(string id, [FromBody]RestaurantPutRequest req)
         {
-            //amovigo tokenidan
-            var userId = "";
-            var role = UserRoles.OWNER;
             var restaurant = await _restaurantService.GetRestaurant(id);
             if(restaurant.Success && restaurant.Data == null)
             {
@@ -145,8 +138,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            //movashoro
-            else if(!restaurant.Data.OwnerId.Equals(userId) && false)
+            else if(!restaurant.Data.OwnerId.Equals(UserId))
             {
                 return Forbid();
             }
@@ -165,11 +157,10 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsync(string id)
         {
-            //amovigo tokenidan
-            var userId = "";
             var res = await _restaurantService.GetRestaurant(id);
             if (!res.Success)
             {
@@ -179,8 +170,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return NotFound();
             }
-            //movashoro
-            if (!userId.Equals(res.Data.OwnerId) && false)
+            if (!UserId.Equals(res.Data.OwnerId) && false)
             {
                 return Forbid();
             }
@@ -198,12 +188,10 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpGet("{id}/foods")]
         public async Task<IActionResult> GetFoods(string id)
         {
-            //amovigo tokenidan
-            var userRole = UserRoles.USER;
-            var userId = "";
             var res = await _restaurantService.GetRestaurant(id);
             if (res.Success && res.Data == null)
             {
@@ -213,17 +201,16 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            if (userRole.Equals(UserRoles.OWNER))
+            if (Role.Equals(UserRoles.OWNER))
             {
-                if (!res.Data.OwnerId.Equals(userId))
+                if (!res.Data.OwnerId.Equals(UserId))
                 {
-                    //no permission
-                    //return Forbid();
+                    return Forbid();
                 }
             }
             else
             {
-                var v = await _restaurantService.IsBlocked(userId, id);
+                var v = await _restaurantService.IsBlocked(UserId, id);
                 if (v.Success && v.Data)
                 {
                     return Forbid();
@@ -246,12 +233,10 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpGet("{id}/foods/{foodId}")]
         public async Task<IActionResult> GetFood(string id, string foodId)
         {
-            //amovigo tokenidan
-            var userRole = UserRoles.USER;
-            var userId = "";
             var res = await _restaurantService.GetRestaurant(id);
             if (res.Success && res.Data == null)
             {
@@ -261,16 +246,16 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            if (userRole.Equals(UserRoles.OWNER))
+            if (Role.Equals(UserRoles.OWNER))
             {
-                if (!res.Data.OwnerId.Equals(userId))
+                if (!res.Data.OwnerId.Equals(UserId))
                 {
                     return Forbid();
                 }
             }
             else
             {
-                var v = await _restaurantService.IsBlocked(userId, id);
+                var v = await _restaurantService.IsBlocked(UserId, id);
                 if (v.Success && v.Data)
                 {
                     return Forbid();
@@ -298,17 +283,15 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpPost("{id}/foods")]
         public async Task<IActionResult> PostFood(string id, [FromBody] FoodPostRequest req)
         {
-            //amovigo tokenidan
-            var userRole = UserRoles.OWNER;
-            var userId = "";
             if (req.Price < 0)
             {
                 return BadRequest();
             }
-            if (!userRole.Equals(UserRoles.OWNER))
+            if (!Role.Equals(UserRoles.OWNER))
             {
                 return Forbid();
             }
@@ -321,10 +304,9 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            if (!res.Data.OwnerId.Equals(userId))
+            if (!res.Data.OwnerId.Equals(UserId))
             {
-                //no permission
-                //return Forbid();
+                return Forbid();
             }
             var result = await _restaurantService.CreateFood(id, req);
             if (!result.Success)
@@ -340,12 +322,10 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpPut("{id}/foods/{foodId}")]
         public async Task<IActionResult> PutFood(string id, string foodId, [FromBody] FoodPutRequest req)
         {
-            //amovigo tokenidan
-            var userId = "";
-            var role = "";
             var food = await _restaurantService.GetFood(id, foodId);
             if (req.Price < 0)
             {
@@ -365,10 +345,9 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            if (!restaurant.Data.OwnerId.Equals(userId))
+            if (!restaurant.Data.OwnerId.Equals(UserId))
             {
-                //no permission
-                //return Forbid();
+                return Forbid();
             }
             var res = await _restaurantService.UpdateFood(id, foodId, req);
             if (!res.Success)
@@ -383,13 +362,11 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpDelete("{id}/foods/{foodId}")]
         public async Task<IActionResult> DeleteFood(string id, string foodId)
         {
-            //amovigo tokenidan
-            var userRole = UserRoles.OWNER;
-            var userId = "";
-            if (!userRole.Equals(UserRoles.OWNER))
+            if (!Role.Equals(UserRoles.OWNER))
             {
                 return Forbid();
             }
@@ -402,10 +379,9 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            if (!res.Data.OwnerId.Equals(userId))
+            if (!res.Data.OwnerId.Equals(UserId))
             {
-                //no permission
-                //return Forbid();
+                return Forbid();
             }
             var result = await _restaurantService.DeleteFood(id, foodId);
             if (!result.Success)
@@ -420,14 +396,13 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpPost("{id}/blocks")]
         public async Task<IActionResult> PostBlock(string id, [FromBody] BlockPostRequest req)
         {
             //ase unda iyos? ra unda davubruno? get block davamato?
             //tu ukve dablokilia?
-            var userId = "";
-            var role = UserRoles.OWNER;
-            if (!role.Equals(UserRoles.OWNER))
+            if (!Role.Equals(UserRoles.OWNER))
             {
                 return Forbid();
             }
@@ -440,9 +415,9 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return NotFound();
             }
-            if (!res.Data.OwnerId.Equals(userId))
+            if (!res.Data.OwnerId.Equals(UserId))
             {
-                //return Forbid();
+                return Forbid();
             }
             //useris shemowmeba ??
             var block = await _restaurantService.CreateBlock(id, req);

@@ -11,6 +11,7 @@ using Google.Apis.Auth.OAuth2;
 using System;
 using FoodDeliveryWebApi.Configs;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using FoodDeliveryWebApi.AuthorizationHandlers;
 
 namespace FoodDeliveryWebApi
 {
@@ -46,9 +47,14 @@ namespace FoodDeliveryWebApi
                 Credential = GoogleCredential.GetApplicationDefault(),
             });
             Console.WriteLine(defaultApp.Name);
-            
-            services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-                .AddNegotiate();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultScheme
+                    = "FirebaseToken";
+            })
+            .AddScheme<ValidateAuthenticationSchemeOptions, FirebaseAuthenticationHandler>
+                    ("FirebaseToken", op => { });
 
 
 

@@ -81,3 +81,7 @@ C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.
 C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\runtimes\osx\native\libgrpc_csharp_ext.x86.dylib
 C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\runtimes\win\native\grpc_csharp_ext.x64.dll
 C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\runtimes\win\native\grpc_csharp_ext.x86.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\Nodo\source\repos\FoodDeliveryWebApi\FoodDeliveryWebApi\bin\Debug\net5.0\System.IdentityModel.Tokens.Jwt.dll

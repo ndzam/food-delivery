@@ -15,6 +15,8 @@ using Firebase.Database.Query;
 using System.Linq;
 using System.Collections.Generic;
 using FirebaseAdmin.Auth;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace FoodDeliveryWebApi.Services
 {
@@ -60,31 +62,14 @@ namespace FoodDeliveryWebApi.Services
                 
                 var additionalClaims = new Dictionary<string, object>()
                 {
-                    { "role" , request.Role},
+                    { Claims.ROLE , request.Role},
                 };
-               // await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.SetCustomUserClaimsAsync(auth.User.LocalId, additionalClaims);
-               // var token = await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.CreateCustomTokenAsync(auth.User.LocalId, additionalClaims);
-               // FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.
-                //string customToken = await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance
-                //    .CreateCustomTokenAsync(auth.User.LocalId, additionalClaims);
-                //UserRecord user = await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.GetUserAsync(auth.User.LocalId);
-                
-                //FirebaseToken decoded = await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(auth.User.LocalId);
-                /*var c = decoded.Claims;
-                object isAdmin;
-                if (decoded.Claims.TryGetValue(request.Role, out isAdmin))
-                {
-                    if ((bool)isAdmin)
-                    {
-                        // Allow access to requested admin resource.
-                    }
-                }*/
-                //var role = user.CustomClaims["role"];
-                var firebase = _firebaseService.GetFirebaseClient(auth.FirebaseToken);
-                var profile = await firebase.Child(TableNames.PROFILE).PostAsync(Newtonsoft.Json.JsonConvert.SerializeObject(new Profile{
-                    UserId = auth.User.LocalId,
-                    Role = request.Role
-                }));
+                await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.SetCustomUserClaimsAsync(auth.User.LocalId, additionalClaims);
+                //var firebase = _firebaseService.GetFirebaseClient(auth.FirebaseToken);
+                //var profile = await firebase.Child(TableNames.PROFILE).PostAsync(Newtonsoft.Json.JsonConvert.SerializeObject(new Profile{
+                //    UserId = auth.User.LocalId,
+                //    Role = request.Role
+                //}));
                 return new ApiResponse<TokenDto>
                 {
                     Success = true,
@@ -133,7 +118,15 @@ namespace FoodDeliveryWebApi.Services
             try
             {
                 var auth = await _firebaseService.GetFirebaseAuthProvider().SignInWithEmailAndPasswordAsync(request.Email, request.Password);
-
+                var tok = auth.FirebaseToken;
+                var handler = new JwtSecurityTokenHandler();
+                var token = handler.ReadJwtToken(tok);
+                var v = token.Claims.FirstOrDefault(x => x.Type.Equals(Claims.ROLE));
+                string role = null;
+                if (v != null)
+                {
+                    role = v.Value;
+                }
                 return new ApiResponse<TokenDto>
                 {
                     Success = true,
@@ -145,7 +138,8 @@ namespace FoodDeliveryWebApi.Services
                         Email = auth.User.Email,
                         UserId = auth.User.LocalId,
                         ExpiresIn = auth.ExpiresIn,
-                        CreatedAt = auth.Created
+                        CreatedAt = auth.Created,
+                        Role = role
                     }
                 };
             }

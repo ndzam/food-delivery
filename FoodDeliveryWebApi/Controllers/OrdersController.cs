@@ -4,6 +4,7 @@ using FoodDeliveryWebApi.Filters;
 using FoodDeliveryWebApi.Models;
 using FoodDeliveryWebApi.Requests;
 using FoodDeliveryWebApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -15,7 +16,7 @@ namespace FoodDeliveryWebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrdersController : Controller
+    public class OrdersController : FoodDeliveryBaseController
     {
 
         private IOrderService _orderService;
@@ -32,6 +33,7 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] OrderFilter filter)
         {
@@ -54,9 +56,7 @@ namespace FoodDeliveryWebApi.Controllers
                     return NotFound();
                 }
             }
-            var userId = "J7nV5vBerlb4NCMY67kUi7cSveN2";
-            var userRole = UserRoles.USER;
-            var res = await _orderService.GetOrders(userId, userRole, filter);
+            var res = await _orderService.GetOrders(UserId, Role, filter);
             if (!res.Success)
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
@@ -69,12 +69,10 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetOrder(string orderId)
         {
-            //amovigo tokenidan
-            var userId = "";
-            var role = UserRoles.OWNER;
             var res = await _orderService.GetOrder(orderId);
             if (!res.Success)
             {
@@ -85,10 +83,9 @@ namespace FoodDeliveryWebApi.Controllers
                 return NotFound();
             }
             var order = res.Data;
-            if (!order.UserId.Equals(userId) && !order.RestaurantOwnerId.Equals(userId))
+            if (!order.UserId.Equals(UserId) && !order.RestaurantOwnerId.Equals(UserId))
             {
-                //movashoro
-                //return Forbid();
+                return Forbid();
             }
             var v = await _restaurantService.GetRestaurant(order.RestaurantId);
             if (!v.Success)
@@ -116,13 +113,12 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpPut("{id}/status")]
         public async Task<IActionResult> PutOrderStatus(string id, [FromBody]OrderStatusPutRequest req)
         {
-            //amovigo tokenidan
             //ase iyos putit? patch?
-            var userId = "";
-            var role = UserRoles.USER;
             var res = await _orderService.GetOrder(id);
             if (!res.Success)
             {
@@ -134,20 +130,19 @@ namespace FoodDeliveryWebApi.Controllers
                 return NotFound();
             }
             var order = res.Data;
-            if(!OrderStatuses.isValidStatusChange(order.Status.CurrentStatus, req.Status, role))
+            if(!OrderStatuses.isValidStatusChange(order.Status.CurrentStatus, req.Status, Role))
             {
                 //es statusi unda?
                 return BadRequest();
             }
-            if (!order.UserId.Equals(userId) &&  !order.RestaurantOwnerId.Equals(userId) && false)
+            if (!order.UserId.Equals(UserId) &&  !order.RestaurantOwnerId.Equals(UserId) && false)
             {
                 return Forbid();
             }
             var v = await _restaurantService.GetRestaurant(order.RestaurantId);
             if (!v.Success)
             {
-                //unknown error
-                return NotFound();
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
             if (v.Data == null)
             {
@@ -157,8 +152,7 @@ namespace FoodDeliveryWebApi.Controllers
             var k = await _restaurantService.IsBlocked(order.UserId, order.RestaurantId);
             if (!k.Success)
             {
-                //unknown error
-                return NotFound();
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
             if (k.Data)
             {
@@ -174,8 +168,7 @@ namespace FoodDeliveryWebApi.Controllers
             var result = await _orderService.UpdateOrderStatus(id, order);
             if (!result.Success)
             {
-                //unknown error
-                return NotFound();
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
             //ra davabruno?
             return Ok(res);
@@ -187,13 +180,11 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = "FirebaseToken")]
         [HttpPost]
         public async Task<IActionResult> PostOrder([FromBody] OrderPostRequest req)
         {
-            //amovigo tokenidan
-            var userId = "fshdsu1";
-            var role = UserRoles.USER;
-            if (!role.Equals(UserRoles.USER))
+            if (!Role.Equals(UserRoles.USER))
             {
                 return Forbid();
             }
@@ -206,7 +197,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return NotFound();
             }
-            var r = await _restaurantService.IsBlocked(userId, req.RestaurantId);
+            var r = await _restaurantService.IsBlocked(UserId, req.RestaurantId);
             if (!r.Success)
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
@@ -238,7 +229,7 @@ namespace FoodDeliveryWebApi.Controllers
                     total += f.Price * o.Quantity;
                 }
             }
-            var result = await _orderService.CreateOrder(userId, res.Data.OwnerId, req, total);
+            var result = await _orderService.CreateOrder(UserId, res.Data.OwnerId, req, total);
             if (!result.Success)
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
