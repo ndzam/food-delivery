@@ -83,7 +83,7 @@ export const SignUpPage: React.FC = () => {
                     data.name,
                     data.password,
                     data.confirmPassword,
-                    'owner',
+                    data.role,
                 ),
             );
         },

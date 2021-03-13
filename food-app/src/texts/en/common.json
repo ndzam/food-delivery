@@ -14,7 +14,16 @@
         "password": "Password",
         "confirmPassword": "Confirm password",
         "signIn": "Sign In",
-        "signUp": "Sign Up"
+        "signUp": "Sign Up",
+        "org": "Food App",
+        "loadMore": "Load more",
+        "search": "Search",
+        "addRestaurant": "Add restaurant",
+        "save": "Save",
+        "cancel": "Cancel",
+        "restaurants": "Restaurants",
+        "orders": "Orders",
+        "description": "Description"
     },
     "errorCodes": {
         "UNKNOWN_ERROR": "aaa",
@@ -30,6 +39,7 @@
         "FORBIDEN": "aaa",
         "INVALID_NAME": "This is not a valid name",
         "NOT_FOUND": "aaa",
-        "INVALID_ROLE": "Invalid role"
+        "INVALID_ROLE": "Invalid role",
+        "ERR_CONNECTION_REFUSED": "Connection refused"
     }
 }

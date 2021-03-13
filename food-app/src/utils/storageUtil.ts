@@ -6,6 +6,10 @@ export function saveUser(user: User) {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
 }
 
+export function removeUser() {
+    localStorage.removeItem(USER_STORAGE_KEY);
+}
+
 export function getUser(): User | null {
     try {
         const userJson = localStorage.getItem(USER_STORAGE_KEY);
