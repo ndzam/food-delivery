@@ -9,6 +9,6 @@ namespace FoodDeliveryWebApi.Services
     {
         Task<ApiResponse<TokenDto>> Create(UserPostRequest request);
         Task<ApiResponse<TokenDto>> SignIn(TokenRequest request);
-        ApiResponse<User> Get(string id);
+        Task<ApiResponse<User>> Get(string id);
     }
 }

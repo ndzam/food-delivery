@@ -173,6 +173,10 @@ namespace FoodDeliveryWebApi.Services
             {
                 var res = await firebase.Collection(TableNames.RESTAURANTS).Document(id).GetSnapshotAsync();
                 Restaurant r = res.ConvertTo<Restaurant>();
+                if(r != null)
+                {
+                    r.Id = id;
+                }
                 return new ApiResponse<Restaurant>
                 {
                     Data = r,
@@ -196,6 +200,10 @@ namespace FoodDeliveryWebApi.Services
             {
                 var res = await firebase.Collection(TableNames.RESTAURANTS).Document(restaurantId).Collection(TableNames.FOODS).Document(id).GetSnapshotAsync();
                 Food f = res.ConvertTo<Food>();
+                if (f != null) 
+                { 
+                    f.Id = id;
+                }
                 return new ApiResponse<Food>
                 {
                     Data = f,
@@ -267,9 +275,9 @@ namespace FoodDeliveryWebApi.Services
                         r.Id = v.Id;
                         list.Add(r);
                         if (list.Count == filter.Limit) break;
-                        //boloa
-                        if (k < filter.Limit) break;
                     }
+                    //boloa
+                    if (k < filter.Limit) break;
                     if (UserRoles.OWNER.Equals(role))
                     {
                         break;

@@ -9,6 +9,7 @@ using FoodDeliveryWebApi.Constants;
 using System.Linq;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using FirebaseAdmin.Auth;
 
 namespace FoodDeliveryWebApi.Services
 {
@@ -56,7 +57,9 @@ namespace FoodDeliveryWebApi.Services
                 {
                     { Claims.ROLE , request.Role},
                 };
-                await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.SetCustomUserClaimsAsync(auth.User.LocalId, additionalClaims);
+                await FirebaseAuth.DefaultInstance.SetCustomUserClaimsAsync(auth.User.LocalId, additionalClaims);
+                auth = await _firebaseService.GetFirebaseAuthProvider().SignInWithEmailAndPasswordAsync(request.Email, request.Password);
+
                 return new ApiResponse<TokenDto>
                 {
                     Success = true,
@@ -89,9 +92,42 @@ namespace FoodDeliveryWebApi.Services
             }
         }
 
-        public ApiResponse<User> Get(string id)
+        public async Task<ApiResponse<User>> Get(string id)
         {
-            throw new NotImplementedException();
+            try {
+                var res = await FirebaseAuth.DefaultInstance.GetUserAsync(id);
+                return new ApiResponse<User>
+                {
+                    Success = true,
+                    Data = new User
+                    {
+                        Name = res.DisplayName,
+                        Email = res.Email
+                    }
+                };
+            } catch(FirebaseAuthException e)
+            {
+                if(e.ErrorCode.Equals(FirebaseAdmin.ErrorCode.NotFound))
+                {
+                    return new ApiResponse<User>
+                    {
+                        Success = true,
+                        Data = null
+                    };
+                }
+                return new ApiResponse<User>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            } catch(Exception e)
+            {
+                return new ApiResponse<User>
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.UNKNOWN_ERROR
+                };
+            }
         }
 
         public async Task<ApiResponse<TokenDto>> SignIn(TokenRequest request)

@@ -3,6 +3,8 @@ using FoodDeliveryWebApi.Models;
 using FoodDeliveryWebApi.Requests;
 using FoodDeliveryWebApi.Response;
 using FoodDeliveryWebApi.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -10,9 +12,9 @@ namespace FoodDeliveryWebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UsersController : FoodDeliveryBaseController
     {
-        //TODO
+
         private IUserService _userService;
 
         public UsersController(IUserService userService, IOrderService orderService, IRestaurantService restaurantService)
@@ -51,16 +53,30 @@ namespace FoodDeliveryWebApi.Controllers
             return BadRequest(response);
         }
 
-        // [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
-        // [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
-        // [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
-        // [HttpGet("{id}")]
-        // public IActionResult Get(string id)
-        // {
-        //     //abrunebs users id-it
-            
-        //     return null;
-        // }
-        
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(string id)
+        {
+            if(!Role.Equals(UserRoles.OWNER) && !UserId.Equals(id))
+            {
+                return Forbid();
+            }
+            ApiResponse<User> response = await _userService.Get(id);
+            if (!response.Success)
+            {
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
+            if(response.Data == null)
+            {
+                return NotFound();
+            }
+            return Ok(response);
+        }
+
     }
 }

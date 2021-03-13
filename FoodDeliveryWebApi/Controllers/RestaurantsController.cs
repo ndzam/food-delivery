@@ -1,6 +1,7 @@
 ﻿using FoodDeliveryWebApi.Constants;
 using FoodDeliveryWebApi.Filters;
 using FoodDeliveryWebApi.Requests;
+using FoodDeliveryWebApi.Response;
 using FoodDeliveryWebApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -150,7 +151,7 @@ namespace FoodDeliveryWebApi.Controllers
             return Ok(res);
         }
 
-        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status204NoContent)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
@@ -174,8 +175,7 @@ namespace FoodDeliveryWebApi.Controllers
             var v = await _restaurantService.DeleteRestaurantAsync(id);
             if (v.Success)
             {
-                //204
-                return Ok();
+                return NoContent();
             }
             return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
@@ -355,7 +355,7 @@ namespace FoodDeliveryWebApi.Controllers
             return Ok(res);
         }
 
-        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status204NoContent)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
@@ -385,7 +385,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            return Ok(res);
+            return NoContent();
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
