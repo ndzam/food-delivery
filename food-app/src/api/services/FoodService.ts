@@ -3,6 +3,7 @@ import {
     getDeleteFoodEndpoint,
     getFoodsEndpoint,
     getEditFoodEndpoint,
+    getFoodEndpoint,
 } from '../client/ApiEndpoints';
 import { HttpClient } from '../client/HttpClient';
 import { ApiResponse } from '../models/ApiResponse';
@@ -17,9 +18,17 @@ export class FoodService {
             method,
         });
 
-        const result = await makeApiRequest<ApiResponse<Array<Food>>>(
-            httpRequest,
-        );
+        const result = await makeApiRequest<ApiResponse<Food[]>>(httpRequest);
+        return result;
+    }
+
+    public async getFood(restaurantId: string, foodId: string) {
+        const method = 'GET';
+        const url = getFoodEndpoint(restaurantId, foodId);
+        const httpRequest = HttpClient(url, {
+            method,
+        });
+        const result = await makeApiRequest<ApiResponse<Food>>(httpRequest);
         return result;
     }
 
@@ -56,12 +65,12 @@ export class FoodService {
     ) {
         const method = 'PUT';
         const url = getEditFoodEndpoint(restaurantId, foodId);
-        //TODO id gvinda
         const httpRequest = HttpClient(url, {
             method,
             data: {
                 name: name,
                 description: description,
+                price: price,
             },
             headers: {
                 'Access-Control-Allow-Origin': true,
@@ -72,10 +81,9 @@ export class FoodService {
         return result;
     }
 
-    public async deleteRestaurant(restaurantId: string, foodId: string) {
+    public async deleteFood(restaurantId: string, foodId: string) {
         const method = 'DELETE';
         const url = getDeleteFoodEndpoint(restaurantId, foodId);
-        //TODO id gvinda
         const httpRequest = HttpClient(url, {
             method,
             data: {},

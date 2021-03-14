@@ -23,6 +23,7 @@ import { AppState } from '../../store';
 import { RestaurantsPageStyles } from './styles';
 import { AppRoutes } from '../../routes/AppRoutes';
 import { useSelector } from 'react-redux';
+import { Page404 } from '../../components/Page404';
 
 const limit = 5;
 
@@ -37,6 +38,7 @@ export const RestaurantsPage: React.FC = () => {
         () => ({
             loadMore: t('labels.loadMore'),
             search: t('labels.search'),
+            addRestaurant: t('labels.addRestaurant'),
         }),
         [t],
     );
@@ -104,7 +106,6 @@ export const RestaurantsPage: React.FC = () => {
     );
 
     const onSearch = React.useCallback(() => {
-        console.log('search', searchTerm);
         //const lastId = restaurants[restaurants.length - 1].id;
         const restaurantService = getRestaurantService();
         makeGetRestaurantsApiRequest(
@@ -134,7 +135,6 @@ export const RestaurantsPage: React.FC = () => {
     }, [setOpenAddRestaurantModal]);
     const addRestaurant = React.useCallback(
         (data: AddRestaurantForm) => {
-            console.log('ADD REST', data);
             const restaurantService = getRestaurantService();
             makeAddRestaurantApiRequest(
                 restaurantService.createRestaurant(data.name, data.description),
@@ -150,7 +150,17 @@ export const RestaurantsPage: React.FC = () => {
             );
         }
         //eslint-disable-next-line
-    }, [addRestaurantApiRequest, setRestaurants, push]);
+    }, [addRestaurantApiRequest, push]);
+    const addErrorCode =
+        addRestaurantApiRequest.state === 'fail'
+            ? addRestaurantApiRequest.response.errorCode
+            : '';
+
+    if (
+        getRestaurantsApiRequest.state === 'fail' &&
+        getRestaurantsApiRequest.response.errorCode === 'NOT_FOUND'
+    )
+        return <Page404 />;
     return (
         <div className={page}>
             {getRestaurantsApiRequest.state === 'idle' ||
@@ -194,14 +204,16 @@ export const RestaurantsPage: React.FC = () => {
                 <Grid container spacing={3}>
                     {owner ? (
                         <Grid item key={'rest-add-button'}>
-                            <AddCard onClick={addRestaurantClick} />
+                            <AddCard
+                                onClick={addRestaurantClick}
+                                label={copy.addRestaurant}
+                            />
                         </Grid>
                     ) : null}
                     {restaurants.map((item) => (
                         <Grid item key={`rest-${item.id}`}>
                             <RestaurantCard
                                 onClick={() => cardClick(item.id)}
-                                id={item.id}
                                 title={item.name}
                                 description={item.description}
                             />
@@ -225,6 +237,7 @@ export const RestaurantsPage: React.FC = () => {
                 handleClose={handleRestaurantAddClose}
                 onSubmit={addRestaurant}
                 isLoading={addRestaurantApiRequest.state === 'loading'}
+                errorCode={addErrorCode}
             />
         </div>
     );

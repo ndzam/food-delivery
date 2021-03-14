@@ -8,6 +8,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { makeStyles, Theme } from '@material-ui/core';
+import { Restaurant } from '../api/models/Restaurant';
 import { Error } from './Error';
 
 const useStyle = makeStyles((theme: Theme) => ({
@@ -16,27 +17,29 @@ const useStyle = makeStyles((theme: Theme) => ({
     },
 }));
 
-interface AddRestaurantFormModalProps {
+interface EditRestaurantFormModalProps {
     open: boolean;
     handleClose: () => void;
-    onSubmit: (data: AddRestaurantForm) => void;
+    onSubmit: (data: EditRestaurantForm) => void;
+    data: Restaurant;
     isLoading?: boolean;
     errorCode?: string | null;
 }
 
-export type AddRestaurantForm = {
+export type EditRestaurantForm = {
+    id: string;
     name: string;
     description: string;
 };
 
-export const AddRestaurantFormModal: React.FC<AddRestaurantFormModalProps> = (
+export const EditRestaurantFormModal: React.FC<EditRestaurantFormModalProps> = (
     props,
 ) => {
-    const { open, handleClose, onSubmit, isLoading, errorCode } = props;
+    const { open, handleClose, onSubmit, isLoading, data, errorCode } = props;
     const { t } = useTranslation();
     const copy = React.useMemo(
         () => ({
-            addRestaurant: t('labels.addRestaurant'),
+            editRestaurant: t('labels.editRestaurant'),
             cancel: t('labels.cancel'),
             save: t('labels.save'),
             name: t('labels.name'),
@@ -45,7 +48,13 @@ export const AddRestaurantFormModal: React.FC<AddRestaurantFormModalProps> = (
         [t],
     );
     const { input } = useStyle();
-    const { register, errors, handleSubmit } = useForm<AddRestaurantForm>();
+    const { register, errors, handleSubmit } = useForm<EditRestaurantForm>({
+        defaultValues: {
+            name: data.name,
+            id: data.id,
+            description: data.description,
+        },
+    });
     return (
         <Dialog
             open={open}
@@ -54,9 +63,10 @@ export const AddRestaurantFormModal: React.FC<AddRestaurantFormModalProps> = (
             disableEnforceFocus
         >
             <DialogTitle id="form-dialog-title">
-                {copy.addRestaurant}
+                {copy.editRestaurant}
             </DialogTitle>
             <form onSubmit={handleSubmit(onSubmit)}>
+                <input id="id" name="id" hidden ref={register()} />
                 <DialogContent>
                     <TextField
                         id="name"

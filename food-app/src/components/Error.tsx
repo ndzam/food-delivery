@@ -16,6 +16,8 @@ const useStyle = makeStyles((theme: Theme) => ({
         borderRadius: 2,
         fontSize: 14,
         lineHeight: '14px',
+        zIndex: 2000,
+        boxSizing: 'border-box',
     },
     text: {
         marginLeft: 8,

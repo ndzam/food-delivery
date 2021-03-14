@@ -42,17 +42,37 @@ export function getDeleteRestaurantEndpoint(id: string) {
 }
 
 export function getFoodsEndpoint(restaurantId: string) {
-    return `/restaurants${restaurantId}/foods`;
+    return `/restaurants/${restaurantId}/foods`;
+}
+
+export function getFoodEndpoint(restaurantId: string, foodId: string) {
+    return `/restaurants/${restaurantId}/foods/${foodId}`;
 }
 
 export function getCreateFoodEndpoint(restaurantId: string) {
-    return `/restaurants${restaurantId}/foods`;
+    return `/restaurants/${restaurantId}/foods`;
 }
 
 export function getEditFoodEndpoint(restaurantId: string, foodId: string) {
-    return `/restaurants${restaurantId}/foods/${foodId}`;
+    return `/restaurants/${restaurantId}/foods/${foodId}`;
 }
 
 export function getDeleteFoodEndpoint(restaurantId: string, foodId: string) {
-    return `/restaurants${restaurantId}/foods/${foodId}`;
+    return `/restaurants/${restaurantId}/foods/${foodId}`;
+}
+
+export function getOrdersEndpoint() {
+    return '/orders';
+}
+
+export function getOrderEndpoint(orderId: string) {
+    return `/orders/${orderId}`;
+}
+
+export function getCreateOrderEndpoint() {
+    return '/orders';
+}
+
+export function getOrderStatusChangeEndpoint(orderId: string) {
+    return `/orders/${orderId}/status`;
 }

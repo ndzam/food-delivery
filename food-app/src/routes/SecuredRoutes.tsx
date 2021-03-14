@@ -1,7 +1,6 @@
 import React from 'react';
 import { Switch, Route, Router } from 'react-router-dom';
 import { History } from 'history';
-import { Home } from '../pages/Home';
 import { RestaurantsPage } from '../pages/RestaurantsPage';
 import { RestaurantDetailsPage } from '../pages/RestaurantDetailsPage';
 import { Layout } from '../components/Layout';

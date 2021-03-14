@@ -1,7 +1,5 @@
 import React from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
-import { Error as ErrorIcon } from '@material-ui/icons';
-import { useTranslation } from 'react-i18next';
 import { Typography } from '@material-ui/core';
 
 const useStyle = makeStyles((theme: Theme) => ({
@@ -27,15 +25,13 @@ const useStyle = makeStyles((theme: Theme) => ({
 }));
 
 interface RestaurantCardProps {
-    id: string;
     title: string;
     description: string;
-    canEdit?: boolean;
     onClick?: () => void;
 }
 
 export const RestaurantCard: React.FC<RestaurantCardProps> = (props) => {
-    const { id, title, description, canEdit, onClick } = props;
+    const { title, description, onClick } = props;
     const { card, cardDescription } = useStyle();
     return (
         <div className={card} onClick={onClick}>

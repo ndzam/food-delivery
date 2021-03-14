@@ -9,6 +9,8 @@ export const RestaurantDetailsPageStyles = makeStyles((theme: Theme) => ({
     },
     details: {
         marginRight: 'auto',
+        maxWidth: 600,
+        overflow: 'hidden',
     },
     options: {
         marginLeft: 'auto',
@@ -16,11 +18,9 @@ export const RestaurantDetailsPageStyles = makeStyles((theme: Theme) => ({
     editStyle: {
         marginLeft: 8,
         marginRight: 8,
-        color: theme.palette.warning.main,
     },
     deleteStyle: {
         marginLeft: 8,
         marginRight: 8,
-        color: theme.palette.error.main,
     },
 }));

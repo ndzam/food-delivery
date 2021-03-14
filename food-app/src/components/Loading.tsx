@@ -1,7 +1,5 @@
 import React from 'react';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
-import { Error as ErrorIcon } from '@material-ui/icons';
-import { useTranslation } from 'react-i18next';
 import { LinearProgress } from '@material-ui/core';
 
 const useStyles = makeStyles((theme: Theme) =>

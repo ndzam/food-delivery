@@ -16,7 +16,7 @@ export const PublicRoutes: React.FC<PublicRoutesProps> = (props) => {
             <Switch>
                 <Route exact path={AppRoutes.SignUp} component={SignUpPage} />
                 <Route exact path={AppRoutes.SignIn} component={SignInPage} />
-                <Route exact path="/" component={SignInPage} />
+                <Route path="/" component={SignInPage} />
             </Switch>
         </Router>
     );

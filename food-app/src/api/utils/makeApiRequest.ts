@@ -16,9 +16,25 @@ export async function makeApiRequest<T>(httpPromise: AxiosPromise<unknown>) {
         if (err.response) {
             if (err.response.status === 401) {
                 Store.dispatch(logoutUser());
+                return {
+                    success: false,
+                    errorCode: 'UNAUTHORIZED',
+                    data: null,
+                };
+            }
+            console.log('HERE', err);
+
+            if (err.response.status === 404) {
+                console.log('HERE');
+                return {
+                    success: false,
+                    errorCode: 'NOT_FOUND',
+                    data: null,
+                };
             }
             return err.response.data as T;
         } else {
+            console.log('HERE 2', err);
             return {
                 success: false,
                 errorCode: 'ERR_CONNECTION_REFUSED',

@@ -10,7 +10,8 @@
     },
     "labels": {
         "email": "Email",
-        "name": "Display name",
+        "name": "Name",
+        "displayName": "Display name",
         "password": "Password",
         "confirmPassword": "Confirm password",
         "signIn": "Sign In",
@@ -19,11 +20,21 @@
         "loadMore": "Load more",
         "search": "Search",
         "addRestaurant": "Add restaurant",
+        "editRestaurant": "Edit restaurant",
+        "addFood": "Add food",
+        "editFood": "Edit food",
         "save": "Save",
         "cancel": "Cancel",
+        "delete": "Delete",
         "restaurants": "Restaurants",
         "orders": "Orders",
-        "description": "Description"
+        "description": "Description",
+        "price": "Price",
+        "notFound": "404 PAGE NOT FOUND"
+    },
+    "confirm": {
+        "title": "Are you sure?",
+        "tip": "This will delete item"
     },
     "errorCodes": {
         "UNKNOWN_ERROR": "aaa",
@@ -40,6 +51,14 @@
         "INVALID_NAME": "This is not a valid name",
         "NOT_FOUND": "aaa",
         "INVALID_ROLE": "Invalid role",
-        "ERR_CONNECTION_REFUSED": "Connection refused"
+        "ERR_CONNECTION_REFUSED": "Connection refused",
+        "MISSING_FIELD": "Missing field",
+        "RESTAURANT_INVALID_NAME_LENGTH": "Invalid name length",
+        "RESTAURANT_INVALID_DESCRIPTION_LENGTH": "Invalid description length",
+        "FOOD_INVALID_NAME_LENGTH": "Invalid name length",
+        "FOOD_INVALID_DESCRIPTION_LENGTH": "Invalid description length",
+        "FOOD_INVALID_PRICE": "Invalid price",
+        "ORDER_FOOD_INVALID_QUANTITY": "Invalid quantity",
+        "ORDER_INVALID_STATUS_CHANGE": "Invalid status change"
     }
 }

@@ -1,7 +1,6 @@
 import React from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { AddCircleOutline } from '@material-ui/icons';
-import { useTranslation } from 'react-i18next';
 import { Typography } from '@material-ui/core';
 
 const useStyle = makeStyles((theme: Theme) => ({
@@ -31,23 +30,17 @@ const useStyle = makeStyles((theme: Theme) => ({
 
 interface AddCardProps {
     onClick?: () => void;
+    label: string;
 }
 
 export const AddCard: React.FC<AddCardProps> = (props) => {
-    const { onClick } = props;
+    const { onClick, label } = props;
     const { card } = useStyle();
-    const { t } = useTranslation();
-    const copy = React.useMemo(
-        () => ({
-            addRestaurant: t('labels.addRestaurant'),
-        }),
-        [t],
-    );
     return (
         <div className={card} onClick={onClick}>
             <AddCircleOutline color="secondary" />
             <Typography variant="h5" color="secondary" noWrap>
-                {copy.addRestaurant}
+                {label}
             </Typography>
         </div>
     );

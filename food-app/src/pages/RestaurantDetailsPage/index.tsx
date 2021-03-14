@@ -1,7 +1,5 @@
 import React from 'react';
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import { Delete, Edit, Error as ErrorIcon } from '@material-ui/icons';
-import { useTranslation } from 'react-i18next';
+import { Delete, Edit } from '@material-ui/icons';
 import { useHistory, useParams } from 'react-router-dom';
 import { useApiRequestHook } from '../../api/hooks/useApiRequestHook';
 import { Restaurant } from '../../api/models/Restaurant';
@@ -10,6 +8,15 @@ import { RestaurantDetailsPageStyles } from './styles';
 import { Loading } from '../../components/Loading';
 import { IconButton, Typography } from '@material-ui/core';
 import { AppRoutes } from '../../routes/AppRoutes';
+import {
+    EditRestaurantForm,
+    EditRestaurantFormModal,
+} from '../../components/EditRestaurantFormModal';
+import { FoodsPage } from '../../components/FoodsPage';
+import { useSelector } from 'react-redux';
+import { AppState } from '../../store';
+import { Page404 } from '../../components/Page404';
+import { DeleteConfirmDialog } from '../../components/DeleteConfirmDialog';
 
 export const RestaurantDetailsPage: React.FC = () => {
     const {
@@ -20,84 +27,168 @@ export const RestaurantDetailsPage: React.FC = () => {
         editStyle,
         deleteStyle,
     } = RestaurantDetailsPageStyles();
-    const { t } = useTranslation();
-    const copy = React.useMemo(
-        () => ({
-            name: t('labels.name'),
-            description: t('labels.description'),
-        }),
-        [t],
-    );
     const { push } = useHistory();
     const { id } = useParams<{ id: string }>();
-
+    const { owner } = useSelector((state: AppState) => {
+        return {
+            owner: state.UserStore.user!.role === 'owner',
+        };
+    });
+    const [restaurant, setRestaurant] = React.useState<Restaurant | null>(null);
+    const [openDeleteConfirm, setOpenDeleteConfirm] = React.useState(false);
+    const [
+        openEditRestaurantModal,
+        setOpenEditRestaurantModal,
+    ] = React.useState(false);
     const [
         getRestaurantRequest,
         makeGetRestaurantRequest,
     ] = useApiRequestHook<Restaurant>();
 
     const [
-        deleteRestaurantRequest,
-        makeDeleteRestaurantRequest,
+        deleteRestaurantApiRequest,
+        makeDeleteRestaurantApiRequest,
     ] = useApiRequestHook();
+
+    const [
+        editRestaurantApiRequest,
+        makeEditRestaurantApiRequest,
+    ] = useApiRequestHook<Restaurant>();
 
     React.useEffect(() => {
         const restaurantService = getRestaurantService();
         makeGetRestaurantRequest(restaurantService.getRestaurant(id));
     }, [makeGetRestaurantRequest, id]);
 
+    React.useEffect(() => {
+        if (getRestaurantRequest.state === 'success') {
+            setRestaurant(getRestaurantRequest.response.data!);
+        }
+    }, [getRestaurantRequest, setRestaurant]);
+
     const onEdit = React.useCallback(() => {
-        console.log('edit');
-    }, []);
-    const onDelete = React.useCallback(() => {
+        setOpenEditRestaurantModal(true);
+    }, [setOpenEditRestaurantModal]);
+    const onDeleteClick = React.useCallback(() => {
+        setOpenDeleteConfirm(true);
+    }, [setOpenDeleteConfirm]);
+
+    const onDeleteCancel = React.useCallback(() => {
+        setOpenDeleteConfirm(false);
+    }, [setOpenDeleteConfirm]);
+
+    const onDeleteConfirm = React.useCallback(() => {
         const restaurantService = getRestaurantService();
-        makeDeleteRestaurantRequest(restaurantService.deleteRestaurant(id));
-    }, [makeDeleteRestaurantRequest, id]);
+        makeDeleteRestaurantApiRequest(restaurantService.deleteRestaurant(id));
+    }, [makeDeleteRestaurantApiRequest, id]);
 
     React.useEffect(() => {
-        console.log(deleteRestaurantRequest);
-        if (deleteRestaurantRequest.state === 'success') {
+        if (deleteRestaurantApiRequest.state === 'success') {
             push(AppRoutes.Restaurants);
         }
-    }, [deleteRestaurantRequest, push]);
+    }, [deleteRestaurantApiRequest, push]);
+
+    const handleRestaurantEditClose = React.useCallback(() => {
+        setOpenEditRestaurantModal(false);
+    }, [setOpenEditRestaurantModal]);
+
+    const editRestaurant = React.useCallback(
+        (data: EditRestaurantForm) => {
+            console.log('EDIT REST', data);
+            const restaurantService = getRestaurantService();
+            makeEditRestaurantApiRequest(
+                restaurantService.editRestaurant(
+                    data.id,
+                    data.name,
+                    data.description,
+                ),
+            );
+        },
+        [makeEditRestaurantApiRequest],
+    );
+
+    React.useEffect(() => {
+        if (editRestaurantApiRequest.state === 'success') {
+            setRestaurant(editRestaurantApiRequest.response.data!);
+            setOpenEditRestaurantModal(false);
+        }
+        //eslint-disable-next-line
+    }, [editRestaurantApiRequest, setRestaurant, setOpenEditRestaurantModal]);
 
     if (
         getRestaurantRequest.state === 'idle' ||
         getRestaurantRequest.state === 'loading'
-    )
+    ) {
         return <Loading />;
+    }
+
+    if (getRestaurantRequest.state === 'success' && restaurant === null) {
+        return <Loading />;
+    }
+
+    const editErrorCode =
+        editRestaurantApiRequest.state === 'fail'
+            ? editRestaurantApiRequest.response.errorCode
+            : '';
+
+    if (
+        getRestaurantRequest.state === 'fail' &&
+        getRestaurantRequest.response.errorCode === 'NOT_FOUND'
+    )
+        return <Page404 />;
 
     return (
         <div className={page}>
-            {deleteRestaurantRequest.state === 'loading' ? <Loading /> : null}
+            {deleteRestaurantApiRequest.state === 'loading' ||
+            editRestaurantApiRequest.state === 'loading' ? (
+                <Loading />
+            ) : null}
             <div className={content}>
                 <div className={details}>
-                    <Typography variant="h3" color="secondary" noWrap>
-                        {getRestaurantRequest.response.data?.name}
+                    <Typography variant="h3" color="secondary">
+                        {restaurant!.name}
                     </Typography>
                     <Typography variant="h5">
-                        {getRestaurantRequest.response.data?.description}
+                        {restaurant!.description}
                     </Typography>
                 </div>
-                <div className={options}>
-                    <IconButton
-                        aria-label="log out"
-                        component="span"
-                        className={editStyle}
-                        onClick={onEdit}
-                    >
-                        <Edit htmlColor="#ffc107" />
-                    </IconButton>
-                    <IconButton
-                        aria-label="log out"
-                        component="span"
-                        className={deleteStyle}
-                        onClick={onDelete}
-                    >
-                        <Delete htmlColor="#dc3545" />
-                    </IconButton>
-                </div>
+                {owner ? (
+                    <div className={options}>
+                        <IconButton
+                            aria-label="log out"
+                            component="span"
+                            className={editStyle}
+                            onClick={onEdit}
+                        >
+                            <Edit htmlColor="#ffc107" />
+                        </IconButton>
+                        <IconButton
+                            aria-label="log out"
+                            component="span"
+                            className={deleteStyle}
+                            onClick={onDeleteClick}
+                        >
+                            <Delete htmlColor="#dc3545" />
+                        </IconButton>
+                    </div>
+                ) : null}
             </div>
+            <FoodsPage restaurantId={restaurant!.id} owner={owner} />
+            <EditRestaurantFormModal
+                open={openEditRestaurantModal}
+                handleClose={handleRestaurantEditClose}
+                onSubmit={editRestaurant}
+                isLoading={editRestaurantApiRequest.state === 'loading'}
+                data={restaurant!}
+                errorCode={editErrorCode}
+            />
+            {openDeleteConfirm && (
+                <DeleteConfirmDialog
+                    open
+                    onCancel={onDeleteCancel}
+                    onConfirm={onDeleteConfirm}
+                />
+            )}
         </div>
     );
 };

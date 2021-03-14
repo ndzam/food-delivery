@@ -1,6 +1,6 @@
 import React from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
-import { AddCircle, Error as ErrorIcon, ExitToApp } from '@material-ui/icons';
+import { ExitToApp } from '@material-ui/icons';
 import { useTranslation } from 'react-i18next';
 import { IconButton, Link, Typography } from '@material-ui/core';
 import { AppRoutes } from '../routes/AppRoutes';
@@ -29,9 +29,16 @@ const useStyle = makeStyles((theme: Theme) => ({
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
+        marginLeft: 'auto',
+        marginRight: 'auto',
     },
     content: {
         width: 1080,
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     logo: {
         marginLeft: 65,

@@ -46,7 +46,7 @@ export const SignUpPage: React.FC = () => {
             tip: t('signUp.tip'),
             haveAccount: t('signUp.haveAccount'),
             email: t('labels.email'),
-            name: t('labels.name'),
+            name: t('labels.displayName'),
             password: t('labels.password'),
             confirmPassword: t('labels.confirmPassword'),
             signUp: t('labels.signUp'),
