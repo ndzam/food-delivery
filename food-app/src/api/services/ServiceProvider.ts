@@ -1,5 +1,6 @@
 import { AuthService } from './AuthService';
 import { FoodService } from './FoodService';
+import { OrderService } from './OrderService';
 import { RestaurantService } from './RestaurantService';
 
 export function getAuthService() {
@@ -12,4 +13,8 @@ export function getRestaurantService() {
 
 export function getFoodService() {
     return new FoodService();
+}
+
+export function getOrderService() {
+    return new OrderService();
 }

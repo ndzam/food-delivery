@@ -27,10 +27,14 @@
         "cancel": "Cancel",
         "delete": "Delete",
         "restaurants": "Restaurants",
+        "order": "Order",
         "orders": "Orders",
         "description": "Description",
         "price": "Price",
-        "notFound": "404 PAGE NOT FOUND"
+        "notFound": "404 PAGE NOT FOUND",
+        "date": "Date",
+        "status": "Status",
+        "from": "From"
     },
     "confirm": {
         "title": "Are you sure?",

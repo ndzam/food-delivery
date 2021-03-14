@@ -7,7 +7,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
-import { makeStyles, Theme } from '@material-ui/core';
+import { InputAdornment, makeStyles, Theme } from '@material-ui/core';
 import { Food } from '../api/models/Food';
 import { Error } from './Error';
 
@@ -97,9 +97,21 @@ export const EditFoodFormModal: React.FC<EditFoodFormModalProps> = (props) => {
                         variant="outlined"
                         className={input}
                         size="small"
-                        inputRef={register({ required: true })}
+                        inputRef={register({
+                            required: true,
+                            setValueAs: (value) => parseFloat(value),
+                            validate: {
+                                positive: (value) => parseFloat(value) > 0,
+                            },
+                        })}
                         error={!!errors.description}
-                        type="number"
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    $
+                                </InputAdornment>
+                            ),
+                        }}
                     />
                     {errorCode ? <Error errorCode={errorCode} /> : null}
                 </DialogContent>

@@ -8,6 +8,7 @@ export const HttpClient = axios.create({
 
 HttpClient.interceptors.request.use(
     function (config) {
+        config.headers['Access-Control-Allow-Origin'] = true;
         const token = getAccessToken();
         if (token != null) {
             config.headers.Authorization = `Bearer ${token}`;

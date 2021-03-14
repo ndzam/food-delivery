@@ -14,9 +14,6 @@ export class AuthService {
                 email: email,
                 password: password,
             },
-            headers: {
-                'Access-Control-Allow-Origin': true,
-            },
         });
 
         const result = await makeApiRequest<ApiResponse<User>>(httpRequest);
@@ -40,9 +37,6 @@ export class AuthService {
                 password: password,
                 confirmPassword: confirmPassword,
                 role: role,
-            },
-            headers: {
-                'Access-Control-Allow-Origin': true,
             },
         });
 

@@ -4,6 +4,7 @@ import {
     IconButton,
     InputAdornment,
     TextField,
+    Typography,
 } from '@material-ui/core';
 import { Search } from '@material-ui/icons';
 import React from 'react';
@@ -39,10 +40,17 @@ export const RestaurantsPage: React.FC = () => {
             loadMore: t('labels.loadMore'),
             search: t('labels.search'),
             addRestaurant: t('labels.addRestaurant'),
+            restaurants: t('labels.restaurants'),
         }),
         [t],
     );
-    const { page, footer, searchContainer, search } = RestaurantsPageStyles();
+    const {
+        page,
+        footer,
+        searchContainer,
+        search,
+        title,
+    } = RestaurantsPageStyles();
     const [restaurants, setRestaurants] = React.useState<Restaurant[]>([]);
     const [canLoadMore, setCanLoadMore] = React.useState(false);
     const [lastSearch, setLastSearch] = React.useState('');
@@ -156,13 +164,11 @@ export const RestaurantsPage: React.FC = () => {
             ? addRestaurantApiRequest.response.errorCode
             : '';
 
-    if (
-        getRestaurantsApiRequest.state === 'fail' &&
-        getRestaurantsApiRequest.response.errorCode === 'NOT_FOUND'
-    )
-        return <Page404 />;
     return (
         <div className={page}>
+            <Typography variant="h3" color="primary" className={title}>
+                {copy.restaurants}
+            </Typography>
             {getRestaurantsApiRequest.state === 'idle' ||
             getRestaurantsApiRequest.state === 'loading' ||
             addRestaurantApiRequest.state === 'loading' ? (

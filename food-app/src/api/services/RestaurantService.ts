@@ -20,9 +20,6 @@ export class RestaurantService {
         const url = getRestaurantsEndpoint(name, lastId, limit);
         const httpRequest = HttpClient(url, {
             method,
-            headers: {
-                'Access-Control-Allow-Origin': true,
-            },
         });
 
         const result = await makeApiRequest<ApiResponse<Restaurant[]>>(
@@ -36,9 +33,6 @@ export class RestaurantService {
         const url = getRestaurantEndpoint(id);
         const httpRequest = HttpClient(url, {
             method,
-            headers: {
-                'Access-Control-Allow-Origin': true,
-            },
         });
 
         const result = await makeApiRequest<ApiResponse<Restaurant>>(
@@ -55,9 +49,6 @@ export class RestaurantService {
             data: {
                 name: name,
                 description: description,
-            },
-            headers: {
-                'Access-Control-Allow-Origin': true,
             },
         });
 
@@ -76,9 +67,6 @@ export class RestaurantService {
                 name: name,
                 description: description,
             },
-            headers: {
-                'Access-Control-Allow-Origin': true,
-            },
         });
 
         const result = await makeApiRequest<ApiResponse<Restaurant>>(
@@ -92,10 +80,6 @@ export class RestaurantService {
         const url = getDeleteRestaurantEndpoint(id);
         const httpRequest = HttpClient(url, {
             method,
-            data: {},
-            headers: {
-                'Access-Control-Allow-Origin': true,
-            },
         });
 
         const result = await makeApiRequest<ApiResponse<unknown>>(httpRequest);

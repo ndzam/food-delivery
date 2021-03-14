@@ -1,6 +1,11 @@
 import React from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
-import { Delete, Edit } from '@material-ui/icons';
+import {
+    Delete,
+    Edit,
+    IndeterminateCheckBox,
+    AddBox,
+} from '@material-ui/icons';
 import { IconButton, Typography } from '@material-ui/core';
 
 const useStyle = makeStyles((theme: Theme) => ({
@@ -40,9 +45,21 @@ const useStyle = makeStyles((theme: Theme) => ({
     },
     topButton: {
         marginBottom: 8,
+        marginLeft: 'auto',
     },
     bottomButton: {
         topBottom: 8,
+        marginLeft: 'auto',
+    },
+    countStyle: {
+        fontFamily: 'Roboto',
+        fontSize: 28,
+        lineHeight: '28px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
+        color: theme.palette.primary.main,
     },
 }));
 
@@ -53,10 +70,24 @@ interface FoodCardProps {
     onClick: () => void;
     onEdit?: () => void;
     onDelete?: () => void;
+    onAdd?: () => void;
+    onRemove?: () => void;
+    count?: number;
+    canEdit?: boolean;
 }
 
 export const FoodCard: React.FC<FoodCardProps> = (props) => {
-    const { title, description, price, onEdit, onDelete } = props;
+    const {
+        title,
+        description,
+        price,
+        onEdit,
+        onDelete,
+        canEdit,
+        onAdd,
+        onRemove,
+        count,
+    } = props;
     const {
         card,
         cardDescription,
@@ -64,6 +95,7 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
         options,
         topButton,
         bottomButton,
+        countStyle,
     } = useStyle();
     return (
         <div className={card}>
@@ -75,29 +107,53 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
                     {description}
                 </Typography>
                 <Typography variant="body1" className={cardDescription}>
-                    {price}
+                    {`$ ${price}`}
                 </Typography>
             </div>
-            <div className={options}>
-                <IconButton
-                    aria-label="edit"
-                    component="span"
-                    size="small"
-                    className={topButton}
-                    onClick={onEdit}
-                >
-                    <Edit htmlColor="#ffc107" />
-                </IconButton>
-                <IconButton
-                    aria-label="delete"
-                    component="span"
-                    size="small"
-                    className={bottomButton}
-                    onClick={onDelete}
-                >
-                    <Delete htmlColor="#dc3545" />
-                </IconButton>
-            </div>
+            {canEdit ? (
+                <div className={options}>
+                    <IconButton
+                        aria-label="edit"
+                        component="span"
+                        size="small"
+                        className={topButton}
+                        onClick={onEdit}
+                    >
+                        <Edit htmlColor="#ffc107" />
+                    </IconButton>
+                    <IconButton
+                        aria-label="delete"
+                        component="span"
+                        size="small"
+                        className={bottomButton}
+                        onClick={onDelete}
+                    >
+                        <Delete htmlColor="#dc3545" />
+                    </IconButton>
+                </div>
+            ) : (
+                <div className={options}>
+                    <IconButton
+                        aria-label="edit"
+                        component="span"
+                        size="small"
+                        className={topButton}
+                        onClick={onAdd}
+                    >
+                        <AddBox color="secondary" />
+                    </IconButton>
+                    <div className={countStyle}>{count}</div>
+                    <IconButton
+                        aria-label="delete"
+                        component="span"
+                        size="small"
+                        className={bottomButton}
+                        onClick={onRemove}
+                    >
+                        <IndeterminateCheckBox color="secondary" />
+                    </IconButton>
+                </div>
+            )}
         </div>
     );
 };

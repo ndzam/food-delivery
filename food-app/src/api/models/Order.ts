@@ -5,6 +5,7 @@ export interface Order {
     orderId: string;
     userId: string;
     restaurantOwnerId: string;
+    restaurantName: string;
     restaurantId: string;
     Items: OrderItem[];
     totalPrice: number;

@@ -7,12 +7,13 @@ import {
 import { HttpClient } from '../client/HttpClient';
 import { ApiResponse } from '../models/ApiResponse';
 import { Order } from '../models/Order';
+import { OrderItem } from '../models/OrderItem';
 import { makeApiRequest } from '../utils/makeApiRequest';
 
 export class OrderService {
-    public async getOrders() {
+    public async getOrders(lastId: string | null, limit: number) {
         const method = 'GET';
-        const url = getOrdersEndpoint();
+        const url = getOrdersEndpoint(lastId, limit);
         const httpRequest = HttpClient(url, {
             method,
         });
@@ -30,12 +31,15 @@ export class OrderService {
         return result;
     }
 
-    public async createOrder() {
+    public async createOrder(restaurantId: string, items: OrderItem[]) {
         const method = 'POST';
         const url = getCreateOrderEndpoint();
         const httpRequest = HttpClient(url, {
             method,
-            data: {},
+            data: {
+                restaurantId: restaurantId,
+                items: items,
+            },
             headers: {
                 'Access-Control-Allow-Origin': true,
             },
@@ -52,9 +56,6 @@ export class OrderService {
             method,
             data: {
                 status: status,
-            },
-            headers: {
-                'Access-Control-Allow-Origin': true,
             },
         });
         const result = await makeApiRequest<ApiResponse<Order>>(httpRequest);

@@ -61,12 +61,20 @@ export function getDeleteFoodEndpoint(restaurantId: string, foodId: string) {
     return `/restaurants/${restaurantId}/foods/${foodId}`;
 }
 
-export function getOrdersEndpoint() {
-    return '/orders';
-}
-
 export function getOrderEndpoint(orderId: string) {
     return `/orders/${orderId}`;
+}
+
+export function getOrdersEndpoint(lastId: string | null, limit: number) {
+    let query = '?';
+    if (lastId) {
+        query += `&lastId=${lastId}`;
+    }
+    if (limit) {
+        query += `&limit=${limit}`;
+    }
+
+    return `/orders${query}`;
 }
 
 export function getCreateOrderEndpoint() {

@@ -1,17 +1,25 @@
-import { Grid } from '@material-ui/core';
+import { Button, Grid } from '@material-ui/core';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { Food } from '../api/models/Food';
 import { useApiRequestHook } from '../api/hooks/useApiRequestHook';
-import { getFoodService } from '../api/services/ServiceProvider';
+import {
+    getFoodService,
+    getOrderService,
+} from '../api/services/ServiceProvider';
 import { AddFoodForm, AddFoodFormModal } from './AddFoodFormModal';
 import { Loading } from './Loading';
 import { AddCard } from './AddCard';
 import { FoodCard } from './FoodCard';
 import { EditFoodForm, EditFoodFormModal } from './EditFoodFormModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { ConfirmationNumber } from '@material-ui/icons';
+import { OrderItem } from '../api/models/OrderItem';
+import { Order } from '../api/models/Order';
+import { useHistory } from 'react-router-dom';
+import { AppRoutes } from '../routes/AppRoutes';
 
 export const useStyles = makeStyles((theme: Theme) => ({
     page: {
@@ -22,6 +30,9 @@ export const useStyles = makeStyles((theme: Theme) => ({
         borderTopColor: '#EEE',
         paddingTop: 32,
         paddingBottom: 32,
+    },
+    orderContainer: {
+        marginBottom: 32,
     },
 }));
 
@@ -37,24 +48,34 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
             loadMore: t('labels.loadMore'),
             search: t('labels.search'),
             addFood: t('labels.addFood'),
+            order: t('labels.order'),
         }),
         [t],
     );
-    const { page } = useStyles();
+    const { page, orderContainer } = useStyles();
+    const { push } = useHistory();
     const [foods, setFoods] = React.useState<Food[]>([]);
     const [openAddFoodModal, setOpenAddFoodModal] = React.useState(false);
     const [openEditFoodModal, setOpenEditFoodModal] = React.useState(false);
     const [openDeleteConfirm, setOpenDeleteConfirm] = React.useState(false);
+    const [totalPrice, setTotalPrice] = React.useState(0);
     const [editTarget, setEditTarget] = React.useState<Food>({
         id: '',
         price: 0,
         name: '',
         description: '',
     });
+    const [orderedFoods, setOrderedFoods] = React.useState<{
+        [id: string]: number;
+    }>({});
     const [deleteTargetId, setDeleteTargetId] = React.useState('');
     const [getFoodsApiRequest, makeGetFoodsApiRequest] = useApiRequestHook<
         Food[]
     >();
+    const [
+        addOrderApiRequest,
+        makeAddOrderApiRequest,
+    ] = useApiRequestHook<Order>();
     const [
         addFoodApiRequest,
         makeAddFoodApiRequest,
@@ -190,6 +211,57 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
         }
         //eslint-disable-next-line
     }, [deleteFoodApiRequest]);
+
+    const addFoodToOrder = React.useCallback(
+        (id: string) => {
+            const food = foods.find((x) => x.id === id);
+            if (food) {
+                const newOrders = { ...orderedFoods };
+                const count = newOrders[id];
+                newOrders[id] = count ? count + 1 : 1;
+                setOrderedFoods(newOrders);
+                setTotalPrice(totalPrice + food.price);
+            }
+        },
+        [orderedFoods, setOrderedFoods, setTotalPrice, totalPrice, foods],
+    );
+
+    const removeFoodToOrder = React.useCallback(
+        (id: string) => {
+            const food = foods.find((x) => x.id === id);
+            if (food) {
+                const newOrders = { ...orderedFoods };
+                const count = newOrders[id];
+                if (count > 0) {
+                    newOrders[id] = Math.max(0, count ? count - 1 : 0);
+                    setOrderedFoods(newOrders);
+                    setTotalPrice(Math.max(0, totalPrice - food.price));
+                }
+            }
+        },
+        [orderedFoods, setOrderedFoods, setTotalPrice, totalPrice, foods],
+    );
+
+    const makeOrder = React.useCallback(() => {
+        const items: OrderItem[] = [];
+        for (let foodId in orderedFoods) {
+            const quantity = orderedFoods[foodId];
+            items.push({ foodId, quantity });
+        }
+        const orderService = getOrderService();
+        makeAddOrderApiRequest(orderService.createOrder(restaurantId, items));
+    }, [orderedFoods, makeAddOrderApiRequest, restaurantId]);
+
+    React.useEffect(() => {
+        if (addOrderApiRequest.state === 'success') {
+            push(
+                AppRoutes.Orders +
+                    `/${addOrderApiRequest.response.data?.orderId}`,
+            );
+        }
+        //eslint-disable-next-line
+    }, [addOrderApiRequest, push]);
+
     const editErrorCode =
         editFoodApiRequest.state === 'fail'
             ? editFoodApiRequest.response.errorCode
@@ -205,8 +277,26 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
             getFoodsApiRequest.state === 'loading' ||
             addFoodApiRequest.state === 'loading' ||
             editFoodApiRequest.state === 'loading' ||
-            deleteFoodApiRequest.state === 'loading' ? (
+            deleteFoodApiRequest.state === 'loading' ||
+            addOrderApiRequest.state === 'loading' ? (
                 <Loading />
+            ) : null}
+
+            {!owner ? (
+                <div className={orderContainer}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                        startIcon={<ConfirmationNumber />}
+                        disabled={totalPrice === 0}
+                        onClick={makeOrder}
+                    >
+                        {totalPrice > 0
+                            ? `${copy.order} (${totalPrice}$)`
+                            : copy.order}
+                    </Button>
+                </div>
             ) : null}
             {foods.length === 0 &&
             getFoodsApiRequest.state === 'success' &&
@@ -228,9 +318,17 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
                                 onClick={() => onFoodClick(item.id)}
                                 onEdit={() => onFoodEditClick(item.id)}
                                 onDelete={() => onFoodDeleteClick(item.id)}
+                                onAdd={() => addFoodToOrder(item.id)}
+                                onRemove={() => removeFoodToOrder(item.id)}
                                 title={item.name}
                                 description={item.description}
                                 price={item.price}
+                                canEdit={owner}
+                                count={
+                                    orderedFoods[item.id]
+                                        ? orderedFoods[item.id]
+                                        : 0
+                                }
                             />
                         </Grid>
                     ))}

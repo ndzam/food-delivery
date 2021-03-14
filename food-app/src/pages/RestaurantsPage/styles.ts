@@ -21,4 +21,7 @@ export const RestaurantsPageStyles = makeStyles((theme: Theme) => ({
     search: {
         width: 400,
     },
+    title: {
+        marginBottom: 16,
+    },
 }));
