@@ -50,7 +50,6 @@ namespace FoodDeliveryWebApi.Controllers
                 var v = await _restaurantService.IsBlocked(UserId, id);
                 if (v.Success && v.Data)
                 {
-                    //blocked
                     return Forbid();
                 }
                 if (!v.Success)
@@ -69,13 +68,14 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] RestaurantFilter filter)
         {
-            //description filtri?
             if(filter.Limit > FilterConstants.MAX_LIMIT || filter.Limit < 1)
             {
-                //es unda iyos?
-                return BadRequest();
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.INVALID_LIMIT
+                });
             }
-            //tu filtris id ar aris...
             if (filter.LastId != null && !filter.LastId.Equals(""))
             {
                 var r = await _restaurantService.GetRestaurant(filter.LastId);
@@ -85,8 +85,11 @@ namespace FoodDeliveryWebApi.Controllers
                 }
                 if(r.Data == null)
                 {
-                    //es unda?
-                    return NotFound();
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        ErrorCode = ErrorCodes.INVALID_LAST_ID
+                    });
                 }
             }
             var res = await _restaurantService.GetAllRestaurant(UserId, Role, filter);
@@ -100,11 +103,36 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody]RestaurantPostRequest req)
         {
+            if (req.Name == null || req.Description == null)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.MISSING_FIELD
+                });
+            }
+            if(req.Name.Length == 0 || req.Name.Length > FilterConstants.NAME_MAX_LENGTH)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.RESTAURANT_INVALID_NAME_LENGTH
+                }) ;
+            }
+            if(req.Description.Length == 0 || req.Description.Length > FilterConstants.DESCRIPTION_MAX_LENGTH)
+            {
+                BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.RESTAURANT_INVALID_DESCRIPTION_LENGTH
+                }); ;
+            }
             if (!Role.Equals(UserRoles.OWNER))
             {
                 return Forbid();
@@ -122,11 +150,36 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(string id, [FromBody]RestaurantPutRequest req)
         {
+            if(req.Name == null || req.Description == null)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.MISSING_FIELD
+                });
+            }
+            if (req.Name.Length == 0 || req.Name.Length > FilterConstants.NAME_MAX_LENGTH)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.RESTAURANT_INVALID_NAME_LENGTH
+                });
+            }
+            if (req.Description.Length == 0 || req.Description.Length > FilterConstants.DESCRIPTION_MAX_LENGTH)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.RESTAURANT_INVALID_DESCRIPTION_LENGTH
+                });
+            }
             var restaurant = await _restaurantService.GetRestaurant(id);
             if(restaurant.Success && restaurant.Data == null)
             {
@@ -220,9 +273,9 @@ namespace FoodDeliveryWebApi.Controllers
             var result = await _restaurantService.GetAllFood(id);
             if (!result.Success)
             {
-                return NotFound();
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            return Ok(res);
+            return Ok(result);
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
@@ -284,9 +337,37 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpPost("{id}/foods")]
         public async Task<IActionResult> PostFood(string id, [FromBody] FoodPostRequest req)
         {
-            if (req.Price < 0)
+            if(req.Price == null || req.Description == null || req.Name == null)
             {
-                return BadRequest();
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.MISSING_FIELD
+                });
+            }
+            if(req.Price <= 0)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.FOOD_INVALID_PRICE
+                });
+            }
+            if(req.Name.Length == 0 || req.Name.Length > FilterConstants.NAME_MAX_LENGTH)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.FOOD_INVALID_NAME_LENGTH
+                });
+            }
+            if (req.Description.Length == 0 || req.Description.Length > FilterConstants.DESCRIPTION_MAX_LENGTH)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.FOOD_INVALID_DESCRIPTION_LENGTH
+                });
             }
             if (!Role.Equals(UserRoles.OWNER))
             {
@@ -311,7 +392,7 @@ namespace FoodDeliveryWebApi.Controllers
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
             //201?
-            return Ok(res);
+            return Ok(result);
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
@@ -323,11 +404,39 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpPut("{id}/foods/{foodId}")]
         public async Task<IActionResult> PutFood(string id, string foodId, [FromBody] FoodPutRequest req)
         {
-            var food = await _restaurantService.GetFood(id, foodId);
-            if (req.Price < 0)
+            if (req.Price == null || req.Description == null || req.Name == null)
             {
-                return BadRequest();
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.MISSING_FIELD
+                });
             }
+            if (req.Price <= 0)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.FOOD_INVALID_PRICE
+                });
+            }
+            if (req.Name.Length == 0 || req.Name.Length > FilterConstants.NAME_MAX_LENGTH)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.FOOD_INVALID_NAME_LENGTH
+                });
+            }
+            if (req.Description.Length == 0 || req.Description.Length > FilterConstants.DESCRIPTION_MAX_LENGTH)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.FOOD_INVALID_DESCRIPTION_LENGTH
+                });
+            }
+            var food = await _restaurantService.GetFood(id, foodId);
             if (food.Success && food.Data == null)
             {
                 return NotFound();
@@ -392,11 +501,20 @@ namespace FoodDeliveryWebApi.Controllers
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [Authorize]
         [HttpPost("{id}/blocks")]
         public async Task<IActionResult> PostBlock(string id, [FromBody] BlockPostRequest req)
         {
+            if(req.UserId == null)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.MISSING_FIELD
+                });
+            }
             //ase unda iyos? ra unda davubruno? get block davamato?
             //tu ukve dablokilia?
             if (!Role.Equals(UserRoles.OWNER))

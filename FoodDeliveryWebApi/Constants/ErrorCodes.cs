@@ -16,5 +16,17 @@ namespace FoodDeliveryWebApi.Constants
         public const string INVALID_NAME = "INVALID_NAME";
         public const string NOT_FOUND = "NOT_FOUND";
         public const string INVALID_ROLE = "INVALID_ROLE";
+        public const string MISSING_FIELD = "MISSING_FIELD";
+        public const string RESTAURANT_INVALID_NAME_LENGTH = "RESTAURANT_INVALID_NAME_LENGTH";
+        public const string RESTAURANT_INVALID_DESCRIPTION_LENGTH = "RESTAURANT_INVALID_DESCRIPTION_LENGTH";
+        public const string FOOD_INVALID_NAME_LENGTH = "FOOD_INVALID_NAME_LENGTH";
+        public const string FOOD_INVALID_DESCRIPTION_LENGTH = "FOOD_INVALID_DESCRIPTION_LENGTH";
+        public const string FOOD_INVALID_PRICE = "FOOD_INVALID_PRICE";
+        public const string ORDER_FOOD_INVALID_QUANTITY = "ORDER_FOOD_INVALID_QUANTITY";
+        public const string ORDER_INVALID_STATUS_CHANGE = "ORDER_INVALID_STATUS_CHANGE";
+        public const string ORDER_INVALID_RESTAURANT_ID = "ORDER_INVALID_RESTAURANT_ID";
+        public const string ORDER_INVALID_FOOD_ID = "ORDER_INVALID_FOOD_ID";
+        public const string INVALID_LIMIT = "INVALID_LIMIT";
+        public const string INVALID_LAST_ID = "INVALID_LAST_ID";
     }
 }

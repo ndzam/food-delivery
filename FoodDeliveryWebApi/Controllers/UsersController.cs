@@ -17,17 +17,26 @@ namespace FoodDeliveryWebApi.Controllers
 
         private IUserService _userService;
 
-        public UsersController(IUserService userService, IOrderService orderService, IRestaurantService restaurantService)
+        public UsersController(IUserService userService)
         {
             _userService = userService;
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status409Conflict)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]UserPostRequest request)
         {
+            if(request.Name == null || request.Email==null || request.ConfirmPassword==null || request.Password == null || request.Role==null)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    ErrorCode = ErrorCodes.MISSING_FIELD,
+                    Success = false
+                });
+            }
             ApiResponse<TokenDto> response = await _userService.Create(request);
             if (response.Success)
             {
@@ -42,9 +51,18 @@ namespace FoodDeliveryWebApi.Controllers
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [HttpPost("token")]
         public async Task<IActionResult> SignIn([FromBody] TokenRequest request)
         {
+            if(request.Password == null || request.Email == null)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    ErrorCode = ErrorCodes.MISSING_FIELD,
+                    Success = false
+                });
+            }
             ApiResponse<TokenDto> response = await _userService.SignIn(request);
             if (response.Success)
             {

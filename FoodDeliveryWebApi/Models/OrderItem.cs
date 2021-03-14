@@ -8,6 +8,6 @@ namespace FoodDeliveryWebApi.Models
     public class OrderItem
     {
         public string FoodId { get; set; }
-        public int Quantity { get; set; }
+        public int? Quantity { get; set; }
     }
 }

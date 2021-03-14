@@ -3,6 +3,7 @@ using FoodDeliveryWebApi.Constants;
 using FoodDeliveryWebApi.Filters;
 using FoodDeliveryWebApi.Models;
 using FoodDeliveryWebApi.Requests;
+using FoodDeliveryWebApi.Response;
 using FoodDeliveryWebApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -39,10 +40,12 @@ namespace FoodDeliveryWebApi.Controllers
         {
             if (filter.Limit > FilterConstants.MAX_LIMIT || filter.Limit < 1)
             {
-                //es unda iyos?
-                return BadRequest();
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.INVALID_LIMIT
+                });
             }
-            //tu filtris id ar aris...
             if (filter.LastId != null && !filter.LastId.Equals(""))
             {
                 var r = await _orderService.GetOrder(filter.LastId);
@@ -52,8 +55,11 @@ namespace FoodDeliveryWebApi.Controllers
                 }
                 if (r.Data == null)
                 {
-                    //es unda?
-                    return NotFound();
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        ErrorCode = ErrorCodes.INVALID_LAST_ID
+                    });
                 }
             }
             var res = await _orderService.GetOrders(UserId, Role, filter);
@@ -118,12 +124,19 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpPut("{id}/status")]
         public async Task<IActionResult> PutOrderStatus(string id, [FromBody]OrderStatusPutRequest req)
         {
+            if(req.Status == null)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.MISSING_FIELD,
+                });
+            }
             //ase iyos putit? patch?
             var res = await _orderService.GetOrder(id);
             if (!res.Success)
             {
-                //unknown error
-                return NotFound();
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
             if (res.Data == null)
             {
@@ -133,9 +146,13 @@ namespace FoodDeliveryWebApi.Controllers
             if(!OrderStatuses.isValidStatusChange(order.Status.CurrentStatus, req.Status, Role))
             {
                 //es statusi unda?
-                return BadRequest();
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.ORDER_INVALID_STATUS_CHANGE,
+                });
             }
-            if (!order.UserId.Equals(UserId) &&  !order.RestaurantOwnerId.Equals(UserId) && false)
+            if (!order.UserId.Equals(UserId) &&  !order.RestaurantOwnerId.Equals(UserId))
             {
                 return Forbid();
             }
@@ -147,7 +164,7 @@ namespace FoodDeliveryWebApi.Controllers
             if (v.Data == null)
             {
                 //washlili yofila restorani, es davabruno?
-                return NotFound();
+                return Forbid();
             }
             var k = await _restaurantService.IsBlocked(order.UserId, order.RestaurantId);
             if (!k.Success)
@@ -157,7 +174,7 @@ namespace FoodDeliveryWebApi.Controllers
             if (k.Data)
             {
                 //dablokilia
-                return NotFound();
+                return Forbid();
             }
             order.Status.CurrentStatus = req.Status;
             order.Status.StatusHistory.Add(new StatusHistoryItem
@@ -184,6 +201,25 @@ namespace FoodDeliveryWebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> PostOrder([FromBody] OrderPostRequest req)
         {
+            if(req.RestaurantId==null || req.Items == null || req.Items.Count == 0)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.MISSING_FIELD,
+                });
+            }
+            foreach (var item in req.Items)
+            {
+                if(item.FoodId == null || item.Quantity == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        ErrorCode = ErrorCodes.MISSING_FIELD,
+                    });
+                }
+            }
             if (!Role.Equals(UserRoles.USER))
             {
                 return Forbid();
@@ -195,7 +231,11 @@ namespace FoodDeliveryWebApi.Controllers
             }
             if (res.Data == null)
             {
-                return NotFound();
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    ErrorCode = ErrorCodes.ORDER_INVALID_RESTAURANT_ID,
+                });
             }
             var r = await _restaurantService.IsBlocked(UserId, req.RestaurantId);
             if (!r.Success)
@@ -217,16 +257,24 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 if (o.Quantity <= 0)
                 {
-                    return BadRequest();
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        ErrorCode = ErrorCodes.ORDER_FOOD_INVALID_QUANTITY,
+                    });
                 }
                 Food f = foods.FirstOrDefault(x => x.Id == o.FoodId);
                 if (f == null)
                 {
-                    return NotFound();
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        ErrorCode = ErrorCodes.ORDER_INVALID_FOOD_ID,
+                    });
                 }
                 else
                 {
-                    total += f.Price * o.Quantity;
+                    total += f.Price * (int)o.Quantity;
                 }
             }
             var result = await _orderService.CreateOrder(UserId, res.Data.OwnerId, req, total);

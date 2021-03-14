@@ -39,7 +39,7 @@ namespace FoodDeliveryWebApi.Services
                     Data = r
                 };
             }
-            catch (Exception e)
+            catch
             {
                 return new ApiResponse<Restaurant>
                 {
@@ -55,7 +55,7 @@ namespace FoodDeliveryWebApi.Services
             {
                 Name = food.Name,
                 Description = food.Description,
-                Price = food.Price
+                Price = (double)food.Price
             };
             var firebase = _firebaseService.GetFirestoreDb();
             try
@@ -68,7 +68,7 @@ namespace FoodDeliveryWebApi.Services
                     Data = f
                 };
             }
-            catch (Exception e)
+            catch
             {
                 return new ApiResponse<Food>
                 {
@@ -95,7 +95,7 @@ namespace FoodDeliveryWebApi.Services
                     Data = b
                 };
             }
-            catch (Exception e)
+            catch
             {
                 return new ApiResponse<Block>
                 {
@@ -183,7 +183,7 @@ namespace FoodDeliveryWebApi.Services
                     Success = true
                 };
             }
-            catch (Exception e)
+            catch
             {
                 return new ApiResponse<Restaurant>
                 {
@@ -210,7 +210,7 @@ namespace FoodDeliveryWebApi.Services
                     Success = true
                 };
             }
-            catch (Exception e)
+            catch
             {
                 return new ApiResponse<Food>
                 {
@@ -291,7 +291,7 @@ namespace FoodDeliveryWebApi.Services
                     Success = true
                 };
             }
-            catch (Exception e)
+            catch
             {
                 return new ApiResponse<List<Restaurant>>
                 {
@@ -320,7 +320,7 @@ namespace FoodDeliveryWebApi.Services
                     Success = true
                 };
             }
-            catch (Exception e)
+            catch
             {
                 return new ApiResponse<List<Food>>
                 {
@@ -358,9 +358,10 @@ namespace FoodDeliveryWebApi.Services
         {
             Food food = new Food
             {
+                Id = id,
                 Name = req.Name,
                 Description = req.Description,
-                Price = req.Price
+                Price = (double)req.Price
             };
             var firebase = _firebaseService.GetFirestoreDb();
             try
@@ -399,7 +400,7 @@ namespace FoodDeliveryWebApi.Services
                     Success = true,
                     Data = true
                 };
-            } catch (Exception e)
+            } catch
             {
                 return new ApiResponse<bool>
                 {

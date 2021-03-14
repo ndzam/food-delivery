@@ -120,7 +120,7 @@ namespace FoodDeliveryWebApi.Services
                     Success = false,
                     ErrorCode = ErrorCodes.UNKNOWN_ERROR
                 };
-            } catch(Exception e)
+            } catch
             {
                 return new ApiResponse<User>
                 {

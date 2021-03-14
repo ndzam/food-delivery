@@ -57,7 +57,7 @@ namespace FoodDeliveryWebApi.Services
                     Success = true,
                     Data = order
                 };
-            } catch (Exception e)
+            } catch
             {
                 return new ApiResponse<Order>
                 {
@@ -76,13 +76,14 @@ namespace FoodDeliveryWebApi.Services
                 Dictionary<string, object> dic = res.ToDictionary();
                 var json = JsonConvert.SerializeObject(dic, Newtonsoft.Json.Formatting.Indented);
                 var order = JsonConvert.DeserializeObject<Order>(json);
+                order.OrderId = orderId;
                 return new ApiResponse<Order>
                 {
                     Data = order,
                     Success = true
                 };
             }
-            catch (Exception e)
+            catch
             {
                 return new ApiResponse<Order>
                 {
