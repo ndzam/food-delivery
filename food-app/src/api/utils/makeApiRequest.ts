@@ -5,6 +5,9 @@ import { logoutUser } from '../../store/user/actions';
 export async function makeApiRequest<T>(httpPromise: AxiosPromise<unknown>) {
     try {
         const response = await httpPromise;
+        if (response.status === 201) {
+            console.log('201', response);
+        }
         if (response.status === 204) {
             return {
                 success: true,
@@ -22,19 +25,29 @@ export async function makeApiRequest<T>(httpPromise: AxiosPromise<unknown>) {
                     data: null,
                 };
             }
-            console.log('HERE', err);
-
             if (err.response.status === 404) {
-                console.log('HERE');
                 return {
                     success: false,
                     errorCode: 'NOT_FOUND',
                     data: null,
                 };
             }
+            if (err.response.status === 403) {
+                return {
+                    success: false,
+                    errorCode: 'FORBID',
+                    data: null,
+                };
+            }
+            if (err.response.status === 400 && !err.response.data) {
+                return {
+                    success: false,
+                    errorCode: 'BAD_REQUEST',
+                    data: null,
+                };
+            }
             return err.response.data as T;
         } else {
-            console.log('HERE 2', err);
             return {
                 success: false,
                 errorCode: 'ERR_CONNECTION_REFUSED',

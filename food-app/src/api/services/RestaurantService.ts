@@ -1,4 +1,5 @@
 import {
+    getBlockUserEndpoint,
     getCreateRestaurantEndpoint,
     getDeleteRestaurantEndpoint,
     getEditRestaurantEndpoint,
@@ -80,6 +81,20 @@ export class RestaurantService {
         const url = getDeleteRestaurantEndpoint(id);
         const httpRequest = HttpClient(url, {
             method,
+        });
+
+        const result = await makeApiRequest<ApiResponse<unknown>>(httpRequest);
+        return result;
+    }
+
+    public async blockUser(id: string, userId: string) {
+        const method = 'PUT';
+        const url = getBlockUserEndpoint(id);
+        const httpRequest = HttpClient(url, {
+            method,
+            data: {
+                userId,
+            },
         });
 
         const result = await makeApiRequest<ApiResponse<unknown>>(httpRequest);

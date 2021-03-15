@@ -15,11 +15,7 @@ export const App: React.FC = () => {
             user: state.UserStore.user,
         };
     });
-    let content = user ? (
-        <SecuredRoutes owner={user.role === 'owner'} />
-    ) : (
-        <PublicRoutes />
-    );
+    let content = user ? <SecuredRoutes /> : <PublicRoutes />;
 
     return (
         <Router history={history}>

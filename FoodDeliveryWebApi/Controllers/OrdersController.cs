@@ -204,7 +204,6 @@ namespace FoodDeliveryWebApi.Controllers
             });
         }
 
-        //todo
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
@@ -260,7 +259,6 @@ namespace FoodDeliveryWebApi.Controllers
             }
             if (k.Data)
             {
-                //dablokilia
                 return Forbid();
             }
             order.Status.CurrentStatus = req.Status;
@@ -316,7 +314,6 @@ namespace FoodDeliveryWebApi.Controllers
                 UserName = user.Data.Name,
                 Items = list
             };
-            //ra davabruno?
             return Ok(new ApiResponse<OrderDTO>
             {
                 Success = true,
@@ -415,8 +412,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            //error code?
-            return Ok(result);
+            return CreatedAtAction(nameof(GetOrder), new { orderId = result.Data.OrderId }, result);
         }
     }
 }

@@ -143,10 +143,10 @@ export const RestaurantDetailsPage: React.FC = () => {
 
     if (
         getRestaurantRequest.state === 'fail' &&
-        getRestaurantRequest.response.errorCode === 'NOT_FOUND'
+        (getRestaurantRequest.response.errorCode === 'NOT_FOUND' ||
+            getRestaurantRequest.response.errorCode === 'FORBID')
     )
         return <Page404 />;
-
     return (
         <div className={page}>
             <Typography variant="h4" color="primary" className={title}>

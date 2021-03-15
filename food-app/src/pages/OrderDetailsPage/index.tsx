@@ -2,7 +2,10 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useApiRequestHook } from '../../api/hooks/useApiRequestHook';
 import { Order } from '../../api/models/Order';
-import { getOrderService } from '../../api/services/ServiceProvider';
+import {
+    getOrderService,
+    getRestaurantService,
+} from '../../api/services/ServiceProvider';
 import { OrderDetailsPageStyles } from './styles';
 import { Loading } from '../../components/Loading';
 import { Page404 } from '../../components/Page404';
@@ -21,8 +24,16 @@ import { useTranslation } from 'react-i18next';
 import { getDate } from '../../utils/dateConverterUtils';
 import { Block, CheckCircleOutline } from '@material-ui/icons';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { useSelector } from 'react-redux';
+import { AppState } from '../../store';
+import { getNextStatus } from '../../api/models/OrderStatus';
 
 export const OrderDetailsPage: React.FC = () => {
+    const { owner } = useSelector((state: AppState) => {
+        return {
+            owner: state.UserStore.user!.role === 'owner',
+        };
+    });
     const { t } = useTranslation();
     const copy = React.useMemo(
         () => ({
@@ -38,9 +49,13 @@ export const OrderDetailsPage: React.FC = () => {
             date: t('labels.date'),
             to: t('labels.to'),
             cancel: t('labels.cancel'),
+            block: t('labels.block'),
+            blocked: t('labels.blocked'),
             delivered: t('labels.delivered'),
             confirmCancel: t('confirm.cancel'),
+            confirmBlock: t('confirm.block'),
             confirmDelivery: t('confirm.delivery'),
+            deleted: t('labels.deleted'),
         }),
         [t],
     );
@@ -57,18 +72,15 @@ export const OrderDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [order, setOrder] = React.useState<Order | null>(null);
     const [getOrderRequest, makeGetOrderRequest] = useApiRequestHook<Order>();
+    const [blockUserRequest, makeUserBlockRequest] = useApiRequestHook();
     const [
-        updateOrderStatusRequest,
-        makeUpdateOrderStatusRequest,
+        updateOrderStatuRequest,
+        makeUpdateOrderStatuRequest,
     ] = useApiRequestHook<Order>();
-    const [
-        openCancelConfirmDialog,
-        setOpenCancelConfirmDialog,
-    ] = React.useState(false);
-    const [
-        openDeliveryConfirmDialog,
-        setOpenDeliveryConfirmDialog,
-    ] = React.useState(false);
+    const [openCancelConfirmDialog, setOpenBlockConfirmDialog] = React.useState(
+        false,
+    );
+    const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
 
     React.useEffect(() => {
         const orderService = getOrderService();
@@ -81,39 +93,60 @@ export const OrderDetailsPage: React.FC = () => {
         }
     }, [getOrderRequest, setOrder]);
 
-    const openCancelConfirm = React.useCallback(() => {
-        setOpenCancelConfirmDialog(true);
-    }, [setOpenCancelConfirmDialog]);
+    const openBlockConfirm = React.useCallback(() => {
+        setOpenBlockConfirmDialog(true);
+    }, [setOpenBlockConfirmDialog]);
 
     const closeConfirmDialogs = React.useCallback(() => {
-        setOpenCancelConfirmDialog(false);
-        setOpenDeliveryConfirmDialog(false);
-    }, [setOpenCancelConfirmDialog, setOpenDeliveryConfirmDialog]);
+        setOpenBlockConfirmDialog(false);
+        setOpenConfirmDialog(false);
+    }, [setOpenBlockConfirmDialog, setOpenConfirmDialog]);
 
-    const cancelOrder = React.useCallback(() => {
-        const orderService = getOrderService();
-        makeUpdateOrderStatusRequest(
-            orderService.orderStatusChange(id, 'canceled'),
+    const blockUser = React.useCallback(() => {
+        const restaurantService = getRestaurantService();
+        makeUserBlockRequest(
+            restaurantService.blockUser(order!.restaurantId, order!.userId),
         );
-    }, [makeUpdateOrderStatusRequest, id]);
+    }, [makeUserBlockRequest, order]);
 
     const openDeliveryConfirm = React.useCallback(() => {
-        setOpenDeliveryConfirmDialog(true);
-    }, [setOpenDeliveryConfirmDialog]);
+        setOpenConfirmDialog(true);
+    }, [setOpenConfirmDialog]);
 
-    const deliverOrder = React.useCallback(() => {
+    const updateStatus = React.useCallback(() => {
         const orderService = getOrderService();
-        makeUpdateOrderStatusRequest(
-            orderService.orderStatusChange(id, 'delivered'),
+        makeUpdateOrderStatuRequest(
+            orderService.orderStatusChange(
+                order?.orderId!,
+                getNextStatus(
+                    order?.status.currentStatus!,
+                    owner ? 'owner' : 'user',
+                )!,
+            ),
         );
-    }, [makeUpdateOrderStatusRequest, id]);
+    }, [makeUpdateOrderStatuRequest, order]);
 
     React.useEffect(() => {
-        if (updateOrderStatusRequest.state === 'success') {
-            setOrder(updateOrderStatusRequest.response.data!);
-            setOpenCancelConfirmDialog(false);
+        if (blockUserRequest.state === 'success') {
+            if (order) {
+                setOrder({ ...order, isUserBlocked: true });
+            }
+            setOpenBlockConfirmDialog(false);
         }
-    }, [updateOrderStatusRequest, setOrder, setOpenCancelConfirmDialog]);
+        //eslint-disable-next-line
+    }, [blockUserRequest, setOrder, setOpenBlockConfirmDialog]);
+
+    React.useEffect(() => {
+        if (updateOrderStatuRequest.state === 'success') {
+            setOrder(updateOrderStatuRequest.response.data!);
+            setOpenConfirmDialog(false);
+        } else if (updateOrderStatuRequest.state === 'fail') {
+            const orderService = getOrderService();
+            makeGetOrderRequest(orderService.getOrder(id));
+            setOpenConfirmDialog(false);
+        }
+        //eslint-disable-next-line
+    }, [updateOrderStatuRequest, setOrder, setOpenConfirmDialog]);
 
     if (
         getOrderRequest.state === 'idle' ||
@@ -133,19 +166,37 @@ export const OrderDetailsPage: React.FC = () => {
         return <Page404 />;
 
     console.log('ORDER', order);
+
+    const nextStatus = getNextStatus(
+        order?.status.currentStatus!,
+        owner ? 'owner' : 'user',
+    );
     return (
         <div className={page}>
             <Typography variant="h3" color="primary" className={title}>
                 {copy.orderDetails}
             </Typography>
-            {updateOrderStatusRequest.state === 'loading' ? <Loading /> : null}
+            {updateOrderStatuRequest.state === 'loading' ||
+            blockUserRequest.state === 'loading' ? (
+                <Loading />
+            ) : null}
+            {blockUserRequest.state === 'loading' ? <Loading /> : null}
             <div className={content}>
                 <div className={details}>
                     <Typography variant="h3" color="secondary">
-                        {`${copy.from}: ${order?.restaurantName}`}
+                        {`${copy.from}: ${
+                            order?.isRestaurantDeleted
+                                ? order?.restaurantId +
+                                  ' (' +
+                                  copy.deleted +
+                                  ')'
+                                : order?.restaurantName
+                        }`}
                     </Typography>
                     <Typography variant="h5">
-                        {`${copy.to}: ${order?.userName}`}
+                        {`${copy.to}: ${order?.userName} ${
+                            order?.isUserBlocked ? '(' + copy.blocked + ')' : ''
+                        }`}
                     </Typography>
                     <Typography variant="body1">
                         {`${copy.order}: ${order?.orderId}`}
@@ -157,76 +208,84 @@ export const OrderDetailsPage: React.FC = () => {
                         {`${copy.date}: ${getDate(order?.date!).toISOString()}`}
                     </Typography>
                 </div>
-                {order?.status.currentStatus === 'canceled' ||
-                order?.status.currentStatus === 'delivered' ? null : (
+                {order?.isRestaurantDeleted ? null : (
                     <div className={options}>
-                        <Button
-                            variant="contained"
-                            color="secondary"
-                            size="large"
-                            startIcon={<Block />}
-                            fullWidth
-                            className={optionItem}
-                            onClick={openCancelConfirm}
-                        >
-                            {copy.cancel}
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            size="large"
-                            startIcon={<CheckCircleOutline />}
-                            fullWidth
-                            className={optionItem}
-                            onClick={openDeliveryConfirm}
-                        >
-                            {copy.delivered}
-                        </Button>
+                        {owner ? (
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                size="large"
+                                startIcon={<Block />}
+                                fullWidth
+                                className={optionItem}
+                                onClick={openBlockConfirm}
+                                disabled={order?.isUserBlocked}
+                            >
+                                {copy.block}
+                            </Button>
+                        ) : null}
+                        {nextStatus === null || order?.isUserBlocked ? null : (
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                size="large"
+                                startIcon={<CheckCircleOutline />}
+                                fullWidth
+                                className={optionItem}
+                                onClick={openDeliveryConfirm}
+                            >
+                                {t(`status.${nextStatus}`)}
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>
-            <div className={tableHolder}>
-                <TableContainer component={Paper}>
-                    <Table className={table} aria-label="details table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>{copy.name}</TableCell>
-                                <TableCell align="right">
-                                    {copy.price}
-                                </TableCell>
-                                <TableCell align="right">
-                                    {copy.quantity}
-                                </TableCell>
-                                <TableCell align="right">
-                                    {copy.total}
-                                </TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {order?.items.map((row) => (
-                                <TableRow key={row.foodId}>
-                                    <TableCell component="th" scope="row">
-                                        {row.foodName}
+            {order?.isRestaurantDeleted ? null : (
+                <div className={tableHolder}>
+                    <TableContainer component={Paper}>
+                        <Table className={table} aria-label="details table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>{copy.name}</TableCell>
+                                    <TableCell align="right">
+                                        {copy.price}
                                     </TableCell>
                                     <TableCell align="right">
-                                        {`$ ${row.price}`}
+                                        {copy.quantity}
                                     </TableCell>
                                     <TableCell align="right">
-                                        {row.quantity}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                        {`$ ${row.price! * row.quantity}`}
+                                        {copy.total}
                                     </TableCell>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </div>
+                            </TableHead>
+                            <TableBody>
+                                {order?.items.map((row) => (
+                                    <TableRow key={row.foodId}>
+                                        <TableCell component="th" scope="row">
+                                            {row.foodName}
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            {`$ ${row.price}`}
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            {row.quantity}
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            {`$ ${row.price! * row.quantity}`}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </div>
+            )}
 
             <div className={tableHolder}>
                 <Typography variant="h4" className={title}>
-                    {`${copy.currentStatus}: ${order?.status.currentStatus}`}
+                    {`${copy.currentStatus}: ${t(
+                        `status.${order?.status.currentStatus!}`,
+                    )}`}
                 </Typography>
                 <TableContainer component={Paper}>
                     <Table className={table} aria-label="details table">
@@ -251,17 +310,22 @@ export const OrderDetailsPage: React.FC = () => {
                     </Table>
                 </TableContainer>
             </div>
-            {(openCancelConfirmDialog || openDeliveryConfirmDialog) && (
+            {(openCancelConfirmDialog || openConfirmDialog) && (
                 <ConfirmDialog
                     open
                     onCancel={closeConfirmDialogs}
                     onConfirm={
-                        openCancelConfirmDialog ? cancelOrder : deliverOrder
+                        openCancelConfirmDialog ? blockUser : updateStatus
                     }
                     text={
                         openCancelConfirmDialog
-                            ? copy.confirmCancel
-                            : copy.confirmDelivery
+                            ? copy.confirmBlock
+                            : t(
+                                  `confirm.status.${getNextStatus(
+                                      order?.status.currentStatus!,
+                                      owner ? 'owner' : 'user',
+                                  )}`,
+                              )
                     }
                 />
             )}

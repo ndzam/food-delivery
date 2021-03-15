@@ -30,11 +30,12 @@ interface OrderCardProps {
     price: string;
     date: Date;
     status: string;
+    closed?: boolean;
     onClick?: () => void;
 }
 
 export const OrderCard: React.FC<OrderCardProps> = (props) => {
-    const { name, price, date, status, onClick } = props;
+    const { name, price, date, status, onClick, closed } = props;
     const { card, cardDescription } = useStyle();
     const { t } = useTranslation();
     const copy = React.useMemo(
@@ -43,13 +44,14 @@ export const OrderCard: React.FC<OrderCardProps> = (props) => {
             status: t('labels.status'),
             price: t('labels.price'),
             from: t('labels.from'),
+            closed: t('labels.closed'),
         }),
         [t],
     );
     return (
         <div className={card} onClick={onClick}>
             <Typography variant="h5" color="secondary" noWrap>
-                {`${copy.from}: ${name}`}
+                {closed ? copy.closed : `${copy.from}: ${name}`}
             </Typography>
             <Typography variant="body1" className={cardDescription}>
                 {`${copy.status}: ${status}`}

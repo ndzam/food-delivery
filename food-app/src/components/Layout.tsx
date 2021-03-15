@@ -69,10 +69,9 @@ export const Layout: React.FC<LayoutProps> = (props) => {
         optionItem,
         contentWraper,
     } = useStyle();
-    const { userName, owner } = useSelector((state: AppState) => {
+    const { userName } = useSelector((state: AppState) => {
         return {
             userName: state.UserStore.user?.name,
-            owner: state.UserStore.user?.role === 'owner',
         };
     });
     const dispatch = useDispatch();
@@ -103,20 +102,6 @@ export const Layout: React.FC<LayoutProps> = (props) => {
                 </div>
                 {userName ? (
                     <div className={options}>
-                        {owner ? (
-                            <Link
-                                component="button"
-                                variant="body2"
-                                onClick={(event: React.SyntheticEvent) => {
-                                    event.preventDefault();
-                                    push(AppRoutes.Users);
-                                }}
-                                href={AppRoutes.Users}
-                                className={optionItem}
-                            >
-                                {copy.users}
-                            </Link>
-                        ) : null}
                         <Link
                             component="button"
                             variant="body2"

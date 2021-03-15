@@ -40,7 +40,7 @@ namespace FoodDeliveryWebApi.Controllers
             ApiResponse<TokenDto> response = await _userService.Create(request);
             if (response.Success)
             {
-                return Ok(response);
+                return CreatedAtAction(nameof(Get), new { id = response.Data.UserId }, response);
             }
             if (response.ErrorCode == ErrorCodes.ACCOUNT_EXISTS)
             {

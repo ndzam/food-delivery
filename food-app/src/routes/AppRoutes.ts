@@ -4,5 +4,4 @@ export const AppRoutes = {
     Home: '/',
     Restaurants: '/restaurants',
     Orders: '/orders',
-    Users: '/users',
 };

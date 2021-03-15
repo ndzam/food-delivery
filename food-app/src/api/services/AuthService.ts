@@ -1,4 +1,8 @@
-import { getSignInEnpoint, getSignUpEnpoint } from '../client/ApiEndpoints';
+import {
+    getSignInEnpoint,
+    getSignUpEnpoint,
+    getUserEnpoint,
+} from '../client/ApiEndpoints';
 import { HttpClient } from '../client/HttpClient';
 import { ApiResponse } from '../models/ApiResponse';
 import { User } from '../models/User';
@@ -38,6 +42,17 @@ export class AuthService {
                 confirmPassword: confirmPassword,
                 role: role,
             },
+        });
+
+        const result = await makeApiRequest<ApiResponse<User>>(httpRequest);
+        return result;
+    }
+
+    public async getUser(id: string) {
+        const method = 'GET';
+        const url = getUserEnpoint(id);
+        const httpRequest = HttpClient(url, {
+            method,
         });
 
         const result = await makeApiRequest<ApiResponse<User>>(httpRequest);

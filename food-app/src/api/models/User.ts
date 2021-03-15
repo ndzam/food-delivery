@@ -4,6 +4,6 @@ export interface User {
     token: string;
     refreshToken: string;
     expiresIn: number;
-    role: string;
+    role: 'user' | 'owner';
     createAt: Date;
 }

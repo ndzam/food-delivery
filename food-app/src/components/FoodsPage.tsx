@@ -20,6 +20,7 @@ import { OrderItem } from '../api/models/OrderItem';
 import { Order } from '../api/models/Order';
 import { useHistory } from 'react-router-dom';
 import { AppRoutes } from '../routes/AppRoutes';
+import { Error } from '../components/Error';
 
 export const useStyles = makeStyles((theme: Theme) => ({
     page: {
@@ -90,6 +91,8 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
         deleteFoodApiRequest,
         makeDeleteFoodApiRequest,
     ] = useApiRequestHook();
+
+    const [canOrder, setCanOrder] = React.useState(true);
 
     React.useEffect(() => {
         const foodService = getFoodService();
@@ -260,6 +263,8 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
                 AppRoutes.Orders +
                     `/${addOrderApiRequest.response.data?.orderId}`,
             );
+        } else if (addOrderApiRequest.state === 'fail') {
+            setCanOrder(false);
         }
         //eslint-disable-next-line
     }, [addOrderApiRequest, push]);
@@ -275,6 +280,7 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
 
     return (
         <div className={page}>
+            {canOrder ? null : <Error errorCode="CAN_NOT_ORDER" />}
             {getFoodsApiRequest.state === 'idle' ||
             getFoodsApiRequest.state === 'loading' ||
             addFoodApiRequest.state === 'loading' ||
@@ -290,7 +296,7 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
                         color="primary"
                         size="large"
                         startIcon={<ConfirmationNumber />}
-                        disabled={totalPrice === 0}
+                        disabled={totalPrice === 0 || !canOrder}
                         onClick={makeOrder}
                     >
                         {totalPrice > 0

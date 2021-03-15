@@ -54,7 +54,6 @@ export const SignInPage: React.FC = () => {
     };
     const onSubmit = React.useCallback(
         (data: SignInForm) => {
-            console.log(data);
             const authService = getAuthService();
             makeApiRequest(authService.signIn(data.email, data.password));
         },

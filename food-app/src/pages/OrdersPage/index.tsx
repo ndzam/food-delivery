@@ -78,6 +78,7 @@ export const OrdersPage: React.FC = () => {
                             status={item.status.currentStatus}
                             price={item.totalPrice.toString()}
                             date={getDate(item.date)}
+                            closed={item.isRestaurantDeleted}
                         />
                     </Grid>
                 ))}

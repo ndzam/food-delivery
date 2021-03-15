@@ -75,7 +75,6 @@ export const SignUpPage: React.FC = () => {
     const [apiRequest, makeApiRequest] = useApiRequestHook<User>();
     const onSubmit = React.useCallback(
         (data: SignUpForm) => {
-            console.log(data);
             const authService = getAuthService();
             makeApiRequest(
                 authService.SignUp(

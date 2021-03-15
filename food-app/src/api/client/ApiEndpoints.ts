@@ -6,6 +6,10 @@ export function getSignUpEnpoint() {
     return '/users';
 }
 
+export function getUserEnpoint(id: string) {
+    return `/users/${id}`;
+}
+
 export function getRestaurantsEndpoint(
     name: string | null,
     lastId: string | null,
@@ -59,6 +63,10 @@ export function getEditFoodEndpoint(restaurantId: string, foodId: string) {
 
 export function getDeleteFoodEndpoint(restaurantId: string, foodId: string) {
     return `/restaurants/${restaurantId}/foods/${foodId}`;
+}
+
+export function getBlockUserEndpoint(restaurantId: string) {
+    return `/restaurants/${restaurantId}/blocks`;
 }
 
 export function getOrderEndpoint(orderId: string) {

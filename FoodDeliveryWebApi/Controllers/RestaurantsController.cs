@@ -142,8 +142,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            //code 201?
-            return Ok(res);
+            return CreatedAtAction(nameof(Get), new { id = res.Data.Id }, res);
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
@@ -200,7 +199,6 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            //200 unda iyos?
             return Ok(res);
         }
 
@@ -391,8 +389,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            //201?
-            return Ok(result);
+            return CreatedAtAction(nameof(GetFood), new { id = id, foodId = result.Data.Id }, result);
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
@@ -460,7 +457,6 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            //code?
             return Ok(res);
         }
 
@@ -497,14 +493,14 @@ namespace FoodDeliveryWebApi.Controllers
             return NoContent();
         }
 
-        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
+        [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status204NoContent)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError)]
         [Authorize]
-        [HttpPost("{id}/blocks")]
+        [HttpPut("{id}/blocks")]
         public async Task<IActionResult> PostBlock(string id, [FromBody] BlockPostRequest req)
         {
             if(req.UserId == null)
@@ -540,7 +536,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            return Ok(block);
+            return NoContent();
         }
     }
 }

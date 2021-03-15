@@ -43,13 +43,26 @@
         "total": "Total",
         "currentStatus": "Current status",
         "delivered": "Delivered",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "block": "Block",
+        "blocked": "Blocked",
+        "deleted": "Deleted",
+        "closed": "Restaurant closed"
     },
     "confirm": {
         "title": "Please confirm",
         "delete": "This will delete item",
         "cancel": "Order will be canceled",
-        "delivery": "Order is deliveried"
+        "delivery": "Order is deliveried",
+        "block": "User will be blocked",
+        "status": {
+            "placed": "Order will be placed",
+            "canceled": "Order will be canceled",
+            "processing": "Order will be processed",
+            "route": "Order will be set to route",
+            "delivered": "Order will be delivered",
+            "received": "Order will be recieved"
+        }
     },
     "errorCodes": {
         "UNKNOWN_ERROR": "aaa",
@@ -74,6 +87,23 @@
         "FOOD_INVALID_DESCRIPTION_LENGTH": "Invalid description length",
         "FOOD_INVALID_PRICE": "Invalid price",
         "ORDER_FOOD_INVALID_QUANTITY": "Invalid quantity",
-        "ORDER_INVALID_STATUS_CHANGE": "Invalid status change"
+        "ORDER_INVALID_STATUS_CHANGE": "Invalid status change",
+        "CAN_NOT_ORDER": "You can not order from this restaurant"
+    },
+    "status": {
+        "placed": "Placed",
+        "canceled": "Canceled",
+        "processing": "Processing",
+        "route": "Route",
+        "delivered": "Delivered",
+        "received": "Received"
+    },
+    "statusNext": {
+        "placed": "Place",
+        "canceled": "Cancel",
+        "processing": "Process",
+        "route": "Route",
+        "delivered": "Delivere",
+        "received": "Receive"
     }
 }
