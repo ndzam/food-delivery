@@ -26,19 +26,30 @@
         "save": "Save",
         "cancel": "Cancel",
         "delete": "Delete",
+        "restaurant": "Restaurant",
         "restaurants": "Restaurants",
+        "users": "Users",
         "order": "Order",
         "orders": "Orders",
+        "orderDetails": "Order Details",
         "description": "Description",
         "price": "Price",
         "notFound": "404 PAGE NOT FOUND",
         "date": "Date",
         "status": "Status",
-        "from": "From"
+        "from": "From",
+        "to": "To",
+        "quantity": "Quantity",
+        "total": "Total",
+        "currentStatus": "Current status",
+        "delivered": "Delivered",
+        "confirm": "Confirm"
     },
     "confirm": {
-        "title": "Are you sure?",
-        "tip": "This will delete item"
+        "title": "Please confirm",
+        "delete": "This will delete item",
+        "cancel": "Order will be canceled",
+        "delivery": "Order is deliveried"
     },
     "errorCodes": {
         "UNKNOWN_ERROR": "aaa",

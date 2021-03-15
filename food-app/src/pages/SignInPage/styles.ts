@@ -3,7 +3,7 @@ import { makeStyles, Theme } from '@material-ui/core/styles';
 export const SignInPageStyles = makeStyles((theme: Theme) => ({
     page: {
         width: '100%',
-        height: '100vh',
+        height: '75vh',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',

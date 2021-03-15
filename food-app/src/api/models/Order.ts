@@ -7,10 +7,11 @@ export interface Order {
     restaurantOwnerId: string;
     restaurantName: string;
     restaurantId: string;
-    Items: OrderItem[];
+    items: OrderItem[];
     totalPrice: number;
     status: OrderStatus;
     date: number;
     isRestaurantDeleted: boolean;
     isUserBlocked: boolean;
+    userName: string;
 }

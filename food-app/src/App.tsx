@@ -4,6 +4,8 @@ import { SecuredRoutes } from './routes/SecuredRoutes';
 import { PublicRoutes } from './routes/PublicRoutes';
 import { createBrowserHistory } from 'history';
 import { AppState } from './store';
+import { Router } from 'react-router-dom';
+import { Layout } from './components/Layout';
 
 const history = createBrowserHistory();
 
@@ -13,8 +15,15 @@ export const App: React.FC = () => {
             user: state.UserStore.user,
         };
     });
-    if (user) {
-        return <SecuredRoutes history={history} />;
-    }
-    return <PublicRoutes history={history} />;
+    let content = user ? (
+        <SecuredRoutes owner={user.role === 'owner'} />
+    ) : (
+        <PublicRoutes />
+    );
+
+    return (
+        <Router history={history}>
+            <Layout>{content}</Layout>
+        </Router>
+    );
 };

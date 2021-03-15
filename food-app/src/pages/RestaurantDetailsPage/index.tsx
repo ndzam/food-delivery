@@ -16,7 +16,8 @@ import { FoodsPage } from '../../components/FoodsPage';
 import { useSelector } from 'react-redux';
 import { AppState } from '../../store';
 import { Page404 } from '../../components/Page404';
-import { DeleteConfirmDialog } from '../../components/DeleteConfirmDialog';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { useTranslation } from 'react-i18next';
 
 export const RestaurantDetailsPage: React.FC = () => {
     const {
@@ -26,7 +27,17 @@ export const RestaurantDetailsPage: React.FC = () => {
         options,
         editStyle,
         deleteStyle,
+        title,
     } = RestaurantDetailsPageStyles();
+    const { t } = useTranslation();
+    const copy = React.useMemo(
+        () => ({
+            restaurant: t('labels.restaurant'),
+            confirmDelete: t('confirm.delete'),
+            delete: t('labels.delete'),
+        }),
+        [t],
+    );
     const { push } = useHistory();
     const { id } = useParams<{ id: string }>();
     const { owner } = useSelector((state: AppState) => {
@@ -94,7 +105,6 @@ export const RestaurantDetailsPage: React.FC = () => {
 
     const editRestaurant = React.useCallback(
         (data: EditRestaurantForm) => {
-            console.log('EDIT REST', data);
             const restaurantService = getRestaurantService();
             makeEditRestaurantApiRequest(
                 restaurantService.editRestaurant(
@@ -139,6 +149,9 @@ export const RestaurantDetailsPage: React.FC = () => {
 
     return (
         <div className={page}>
+            <Typography variant="h4" color="primary" className={title}>
+                {copy.restaurant}
+            </Typography>
             {deleteRestaurantApiRequest.state === 'loading' ||
             editRestaurantApiRequest.state === 'loading' ? (
                 <Loading />
@@ -183,10 +196,12 @@ export const RestaurantDetailsPage: React.FC = () => {
                 errorCode={editErrorCode}
             />
             {openDeleteConfirm && (
-                <DeleteConfirmDialog
+                <ConfirmDialog
                     open
                     onCancel={onDeleteCancel}
                     onConfirm={onDeleteConfirm}
+                    text={copy.confirmDelete}
+                    confirmLabel={copy.delete}
                 />
             )}
         </div>

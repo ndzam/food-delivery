@@ -14,7 +14,7 @@ import { Loading } from './Loading';
 import { AddCard } from './AddCard';
 import { FoodCard } from './FoodCard';
 import { EditFoodForm, EditFoodFormModal } from './EditFoodFormModal';
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { ConfirmDialog } from './ConfirmDialog';
 import { ConfirmationNumber } from '@material-ui/icons';
 import { OrderItem } from '../api/models/OrderItem';
 import { Order } from '../api/models/Order';
@@ -49,6 +49,8 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
             search: t('labels.search'),
             addFood: t('labels.addFood'),
             order: t('labels.order'),
+            confirmDelete: t('confirm.delete'),
+            delete: t('labels.delete'),
         }),
         [t],
     );
@@ -281,7 +283,6 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
             addOrderApiRequest.state === 'loading' ? (
                 <Loading />
             ) : null}
-
             {!owner ? (
                 <div className={orderContainer}>
                     <Button
@@ -298,42 +299,33 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
                     </Button>
                 </div>
             ) : null}
-            {foods.length === 0 &&
-            getFoodsApiRequest.state === 'success' &&
-            !owner ? (
-                'NO CONENT'
-            ) : (
-                <Grid container spacing={3}>
-                    {owner ? (
-                        <Grid item key={'rest-add-button'}>
-                            <AddCard
-                                onClick={addFoodClick}
-                                label={copy.addFood}
-                            />
-                        </Grid>
-                    ) : null}
-                    {foods.map((item) => (
-                        <Grid item key={`rest-${item.id}`}>
-                            <FoodCard
-                                onClick={() => onFoodClick(item.id)}
-                                onEdit={() => onFoodEditClick(item.id)}
-                                onDelete={() => onFoodDeleteClick(item.id)}
-                                onAdd={() => addFoodToOrder(item.id)}
-                                onRemove={() => removeFoodToOrder(item.id)}
-                                title={item.name}
-                                description={item.description}
-                                price={item.price}
-                                canEdit={owner}
-                                count={
-                                    orderedFoods[item.id]
-                                        ? orderedFoods[item.id]
-                                        : 0
-                                }
-                            />
-                        </Grid>
-                    ))}
-                </Grid>
-            )}
+            <Grid container spacing={3}>
+                {owner ? (
+                    <Grid item key={'rest-add-button'}>
+                        <AddCard onClick={addFoodClick} label={copy.addFood} />
+                    </Grid>
+                ) : null}
+                {foods.map((item) => (
+                    <Grid item key={`rest-${item.id}`}>
+                        <FoodCard
+                            onClick={() => onFoodClick(item.id)}
+                            onEdit={() => onFoodEditClick(item.id)}
+                            onDelete={() => onFoodDeleteClick(item.id)}
+                            onAdd={() => addFoodToOrder(item.id)}
+                            onRemove={() => removeFoodToOrder(item.id)}
+                            title={item.name}
+                            description={item.description}
+                            price={item.price}
+                            canEdit={owner}
+                            count={
+                                orderedFoods[item.id]
+                                    ? orderedFoods[item.id]
+                                    : 0
+                            }
+                        />
+                    </Grid>
+                ))}
+            </Grid>
             <AddFoodFormModal
                 open={openAddFoodModal}
                 handleClose={handleFoodAddClose}
@@ -352,10 +344,12 @@ export const FoodsPage: React.FC<FoodsPageProps> = (props) => {
                 />
             )}
             {openDeleteConfirm && (
-                <DeleteConfirmDialog
+                <ConfirmDialog
                     open
                     onCancel={cancelDelete}
                     onConfirm={deleteFood}
+                    text={copy.confirmDelete}
+                    confirmLabel={copy.delete}
                 />
             )}
         </div>

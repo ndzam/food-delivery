@@ -6,23 +6,14 @@ import { useApiRequestHook } from '../../api/hooks/useApiRequestHook';
 import { Order } from '../../api/models/Order';
 import { getOrderService } from '../../api/services/ServiceProvider';
 import { Loading } from '../../components/Loading';
-import { RestaurantCard } from '../../components/RestaurantCard';
-import { AppState } from '../../store';
 import { OrdersPageStyles } from './styles';
 import { AppRoutes } from '../../routes/AppRoutes';
-import { useSelector } from 'react-redux';
-import { Page404 } from '../../components/Page404';
 import { OrderCard } from '../../components/OrderCard';
 import { getDate } from '../../utils/dateConverterUtils';
 
 const limit = 5;
 
 export const OrdersPage: React.FC = () => {
-    const { owner } = useSelector((state: AppState) => {
-        return {
-            owner: state.UserStore.user!.role === 'owner',
-        };
-    });
     const { t } = useTranslation();
     const copy = React.useMemo(
         () => ({
@@ -77,23 +68,20 @@ export const OrdersPage: React.FC = () => {
             getOrdersApiRequest.state === 'loading' ? (
                 <Loading />
             ) : null}
-            {orders.length === 0 && getOrdersApiRequest.state === 'success' ? (
-                'NO CONENT'
-            ) : (
-                <Grid container spacing={3}>
-                    {orders.map((item) => (
-                        <Grid item key={`rest-${item.orderId}`}>
-                            <OrderCard
-                                onClick={() => cardClick(item.orderId)}
-                                name={item.restaurantName}
-                                status={item.status.currentStatus}
-                                price={item.totalPrice.toString()}
-                                date={getDate(item.date)}
-                            />
-                        </Grid>
-                    ))}
-                </Grid>
-            )}
+
+            <Grid container spacing={3}>
+                {orders.map((item) => (
+                    <Grid item key={`rest-${item.orderId}`}>
+                        <OrderCard
+                            onClick={() => cardClick(item.orderId)}
+                            name={item.restaurantName}
+                            status={item.status.currentStatus}
+                            price={item.totalPrice.toString()}
+                            date={getDate(item.date)}
+                        />
+                    </Grid>
+                ))}
+            </Grid>
             {orders.length === 0 || !canLoadMore ? null : (
                 <div className={footer}>
                     <Button

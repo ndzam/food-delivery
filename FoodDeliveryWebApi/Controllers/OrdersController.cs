@@ -86,24 +86,19 @@ namespace FoodDeliveryWebApi.Controllers
                 {
                     return new StatusCodeResult(StatusCodes.Status500InternalServerError);
                 }
-                if (isBlocked.Data)
+                o.IsUserBlocked = isBlocked.Data;
+                var restaurant = await _restaurantService.GetRestaurant(v.RestaurantId);
+                if (!restaurant.Success)
                 {
-                    o.IsUserBlocked = true;
+                    return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+                }
+                if (restaurant.Data == null)
+                {
+                    o.IsRestaurantDeleted = true;
                 } else
                 {
-                    o.IsUserBlocked = false;
-                    var restaurant = await _restaurantService.GetRestaurant(v.RestaurantId);
-                    if (!restaurant.Success)
-                    {
-                        return new StatusCodeResult(StatusCodes.Status500InternalServerError);
-                    }
-                    if (restaurant.Data == null)
-                    {
-                        o.IsRestaurantDeleted = true;
-                    } else
-                    {
-                        o.RestaurantName = restaurant.Data.Name;
-                    }
+                    o.IsRestaurantDeleted = false;
+                    o.RestaurantName = restaurant.Data.Name;
                 }
                 list.Add(o);
             }
@@ -196,7 +191,7 @@ namespace FoodDeliveryWebApi.Controllers
                 RestaurantId = res.Data.RestaurantId,
                 RestaurantOwnerId = res.Data.RestaurantOwnerId,
                 Status = res.Data.Status,
-                RestaurantName = v.Data.Name,
+                RestaurantName = v.Data == null ? null : v.Data.Name,
                 TotalPrice = res.Data.TotalPrice,
                 UserId = res.Data.UserId,
                 UserName = user.Data.Name,
@@ -227,7 +222,6 @@ namespace FoodDeliveryWebApi.Controllers
                     ErrorCode = ErrorCodes.MISSING_FIELD,
                 });
             }
-            //ase iyos putit? patch?
             var res = await _orderService.GetOrder(id);
             if (!res.Success)
             {
@@ -240,7 +234,6 @@ namespace FoodDeliveryWebApi.Controllers
             var order = res.Data;
             if(!OrderStatuses.isValidStatusChange(order.Status.CurrentStatus, req.Status, Role))
             {
-                //es statusi unda?
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
@@ -258,7 +251,6 @@ namespace FoodDeliveryWebApi.Controllers
             }
             if (v.Data == null)
             {
-                //washlili yofila restorani, es davabruno?
                 return Forbid();
             }
             var k = await _restaurantService.IsBlocked(order.UserId, order.RestaurantId);
@@ -282,8 +274,54 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
+            var user = await _userService.Get(res.Data.UserId);
+            if (!user.Success)
+            {
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
+            List<OrderItemDTO> list = new List<OrderItemDTO>();
+            var f = await _restaurantService.GetAllFood(res.Data.RestaurantId);
+            if (!f.Success)
+            {
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
+            List<Food> foods = f.Data;
+            foreach (var item in res.Data.Items)
+            {
+                OrderItemDTO ord = new OrderItemDTO
+                {
+                    FoodId = item.FoodId,
+                    Quantity = item.Quantity
+                };
+                if (foods != null)
+                {
+                    var cur = foods.Find(x => x.Id.Equals(item.FoodId));
+                    ord.FoodName = cur.Name;
+                    ord.Price = cur.Price;
+                }
+                list.Add(ord);
+            }
+            OrderDTO o = new OrderDTO
+            {
+                Date = res.Data.Date,
+                IsRestaurantDeleted = res.Data.IsRestaurantDeleted,
+                IsUserBlocked = res.Data.IsUserBlocked,
+                OrderId = res.Data.OrderId,
+                RestaurantId = res.Data.RestaurantId,
+                RestaurantOwnerId = res.Data.RestaurantOwnerId,
+                Status = res.Data.Status,
+                RestaurantName = v.Data.Name,
+                TotalPrice = res.Data.TotalPrice,
+                UserId = res.Data.UserId,
+                UserName = user.Data.Name,
+                Items = list
+            };
             //ra davabruno?
-            return Ok(res);
+            return Ok(new ApiResponse<OrderDTO>
+            {
+                Success = true,
+                Data = o
+            });
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]

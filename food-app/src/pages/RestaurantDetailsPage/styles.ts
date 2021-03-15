@@ -23,4 +23,7 @@ export const RestaurantDetailsPageStyles = makeStyles((theme: Theme) => ({
         marginLeft: 8,
         marginRight: 8,
     },
+    title: {
+        marginBottom: 16,
+    },
 }));

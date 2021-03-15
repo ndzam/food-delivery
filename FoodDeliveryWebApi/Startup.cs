@@ -9,6 +9,7 @@ using Google.Apis.Auth.OAuth2;
 using FoodDeliveryWebApi.Configs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Text.Json.Serialization;
 
 namespace FoodDeliveryWebApi
 {
@@ -35,7 +36,10 @@ namespace FoodDeliveryWebApi
                                       builder.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod(); 
                                   });
             });
-
+            services.AddMvc().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            });
             services.Configure<APIConfigs>(Configuration.GetSection(
                                         "APIConfigs"));
             var defaultApp = FirebaseApp.Create(new AppOptions()

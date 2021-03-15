@@ -8,6 +8,7 @@ import { HttpClient } from '../client/HttpClient';
 import { ApiResponse } from '../models/ApiResponse';
 import { Order } from '../models/Order';
 import { OrderItem } from '../models/OrderItem';
+import { OrderStatusString } from '../models/OrderStatus';
 import { makeApiRequest } from '../utils/makeApiRequest';
 
 export class OrderService {
@@ -49,7 +50,7 @@ export class OrderService {
         return result;
     }
 
-    public async orderStatusChange(orderId: string, status: string) {
+    public async orderStatusChange(orderId: string, status: OrderStatusString) {
         const method = 'PUT';
         const url = getOrderStatusChangeEndpoint(orderId);
         const httpRequest = HttpClient(url, {

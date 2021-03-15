@@ -23,6 +23,7 @@ const useStyle = makeStyles((theme: Theme) => ({
         display: 'flex',
         alignItems: 'center',
         marginBottom: 16,
+        marginTop: 5,
     },
     contentWraper: {
         display: 'flex',
@@ -68,9 +69,10 @@ export const Layout: React.FC<LayoutProps> = (props) => {
         optionItem,
         contentWraper,
     } = useStyle();
-    const { user } = useSelector((state: AppState) => {
+    const { userName, owner } = useSelector((state: AppState) => {
         return {
-            user: state.UserStore.user,
+            userName: state.UserStore.user?.name,
+            owner: state.UserStore.user?.role === 'owner',
         };
     });
     const dispatch = useDispatch();
@@ -81,6 +83,7 @@ export const Layout: React.FC<LayoutProps> = (props) => {
             org: t('labels.org'),
             restaurants: t('labels.restaurants'),
             orders: t('labels.orders'),
+            users: t('labels.users'),
         }),
         [t],
     );
@@ -98,48 +101,64 @@ export const Layout: React.FC<LayoutProps> = (props) => {
                         {copy.org}
                     </Typography>
                 </div>
-                <div className={options}>
-                    <Link
-                        component="button"
-                        variant="body2"
-                        onClick={(event: React.SyntheticEvent) => {
-                            event.preventDefault();
-                            push(AppRoutes.Restaurants);
-                        }}
-                        href={AppRoutes.Restaurants}
-                        className={optionItem}
-                    >
-                        {copy.restaurants}
-                    </Link>
-                    <Link
-                        component="button"
-                        variant="body2"
-                        onClick={(event: React.SyntheticEvent) => {
-                            event.preventDefault();
-                            push(AppRoutes.Orders);
-                        }}
-                        href={AppRoutes.Orders}
-                        className={optionItem}
-                    >
-                        {copy.orders}
-                    </Link>
-                    <Typography
-                        variant="h5"
-                        color="primary"
-                        className={optionItem}
-                    >
-                        {user?.name}
-                    </Typography>
-                    <IconButton
-                        color="primary"
-                        aria-label="log out"
-                        component="span"
-                        className={optionItem}
-                        onClick={logOut}
-                    >
-                        <ExitToApp />
-                    </IconButton>
-                </div>
+                {userName ? (
+                    <div className={options}>
+                        {owner ? (
+                            <Link
+                                component="button"
+                                variant="body2"
+                                onClick={(event: React.SyntheticEvent) => {
+                                    event.preventDefault();
+                                    push(AppRoutes.Users);
+                                }}
+                                href={AppRoutes.Users}
+                                className={optionItem}
+                            >
+                                {copy.users}
+                            </Link>
+                        ) : null}
+                        <Link
+                            component="button"
+                            variant="body2"
+                            onClick={(event: React.SyntheticEvent) => {
+                                event.preventDefault();
+                                push(AppRoutes.Restaurants);
+                            }}
+                            href={AppRoutes.Restaurants}
+                            className={optionItem}
+                        >
+                            {copy.restaurants}
+                        </Link>
+                        <Link
+                            component="button"
+                            variant="body2"
+                            onClick={(event: React.SyntheticEvent) => {
+                                event.preventDefault();
+                                push(AppRoutes.Orders);
+                            }}
+                            href={AppRoutes.Orders}
+                            className={optionItem}
+                        >
+                            {copy.orders}
+                        </Link>
+                        <Typography
+                            variant="h5"
+                            color="primary"
+                            className={optionItem}
+                        >
+                            {userName}
+                        </Typography>
+                        <IconButton
+                            color="primary"
+                            aria-label="log out"
+                            component="span"
+                            className={optionItem}
+                            onClick={logOut}
+                        >
+                            <ExitToApp />
+                        </IconButton>
+                    </div>
+                ) : null}
             </div>
             <div className={contentWraper}>
                 <div className={content}>{props.children}</div>

@@ -24,7 +24,6 @@ import { AppState } from '../../store';
 import { RestaurantsPageStyles } from './styles';
 import { AppRoutes } from '../../routes/AppRoutes';
 import { useSelector } from 'react-redux';
-import { Page404 } from '../../components/Page404';
 
 const limit = 5;
 
@@ -74,7 +73,8 @@ export const RestaurantsPage: React.FC = () => {
         makeGetRestaurantsApiRequest(
             restaurantService.getRestaurants(searchTerm, null, limit),
         );
-    }, [makeGetRestaurantsApiRequest, searchTerm]);
+        //eslint-disable-next-line
+    }, [makeGetRestaurantsApiRequest]);
 
     const cardClick = React.useCallback(
         (id: string) => {
@@ -104,7 +104,8 @@ export const RestaurantsPage: React.FC = () => {
         makeGetRestaurantsApiRequest(
             restaurantService.getRestaurants(searchTerm, lastId, limit),
         );
-    }, [restaurants, makeGetRestaurantsApiRequest, searchTerm]);
+        //eslint-disable-next-line
+    }, [restaurants, makeGetRestaurantsApiRequest]);
 
     const onSearchChange = React.useCallback(
         (event) => {
@@ -166,7 +167,7 @@ export const RestaurantsPage: React.FC = () => {
 
     return (
         <div className={page}>
-            <Typography variant="h3" color="primary" className={title}>
+            <Typography variant="h4" color="primary" className={title}>
                 {copy.restaurants}
             </Typography>
             {getRestaurantsApiRequest.state === 'idle' ||
@@ -202,31 +203,25 @@ export const RestaurantsPage: React.FC = () => {
                     onKeyDown={onSearchKeyPress}
                 />
             </div>
-            {restaurants.length === 0 &&
-            getRestaurantsApiRequest.state === 'success' &&
-            !owner ? (
-                'NO CONENT'
-            ) : (
-                <Grid container spacing={3}>
-                    {owner ? (
-                        <Grid item key={'rest-add-button'}>
-                            <AddCard
-                                onClick={addRestaurantClick}
-                                label={copy.addRestaurant}
-                            />
-                        </Grid>
-                    ) : null}
-                    {restaurants.map((item) => (
-                        <Grid item key={`rest-${item.id}`}>
-                            <RestaurantCard
-                                onClick={() => cardClick(item.id)}
-                                title={item.name}
-                                description={item.description}
-                            />
-                        </Grid>
-                    ))}
-                </Grid>
-            )}
+            <Grid container spacing={3}>
+                {owner ? (
+                    <Grid item key={'rest-add-button'}>
+                        <AddCard
+                            onClick={addRestaurantClick}
+                            label={copy.addRestaurant}
+                        />
+                    </Grid>
+                ) : null}
+                {restaurants.map((item) => (
+                    <Grid item key={`rest-${item.id}`}>
+                        <RestaurantCard
+                            onClick={() => cardClick(item.id)}
+                            title={item.name}
+                            description={item.description}
+                        />
+                    </Grid>
+                ))}
+            </Grid>
             {restaurants.length === 0 || !canLoadMore ? null : (
                 <div className={footer}>
                     <Button

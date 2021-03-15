@@ -57,7 +57,6 @@ export const useApiRequestHook = <T>() => {
         async (request: Promise<ApiResponse<T>>) => {
             setRequestState(requestStateLoading());
             const response = await request;
-            console.log('IN CALL', response);
             if (response.success) {
                 setRequestState(
                     requestStateSuccess<ApiResponse<T>>(
