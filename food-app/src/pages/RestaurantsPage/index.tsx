@@ -25,7 +25,7 @@ import { RestaurantsPageStyles } from './styles';
 import { AppRoutes } from '../../routes/AppRoutes';
 import { useSelector } from 'react-redux';
 
-const limit = 5;
+const limit = 20;
 
 export const RestaurantsPage: React.FC = () => {
     const { owner } = useSelector((state: AppState) => {

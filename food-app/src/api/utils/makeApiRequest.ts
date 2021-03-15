@@ -5,9 +5,6 @@ import { logoutUser } from '../../store/user/actions';
 export async function makeApiRequest<T>(httpPromise: AxiosPromise<unknown>) {
     try {
         const response = await httpPromise;
-        if (response.status === 201) {
-            console.log('201', response);
-        }
         if (response.status === 204) {
             return {
                 success: true,

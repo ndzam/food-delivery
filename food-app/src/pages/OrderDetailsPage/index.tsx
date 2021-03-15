@@ -124,7 +124,7 @@ export const OrderDetailsPage: React.FC = () => {
                 )!,
             ),
         );
-    }, [makeUpdateOrderStatuRequest, order]);
+    }, [makeUpdateOrderStatuRequest, order, owner]);
 
     React.useEffect(() => {
         if (blockUserRequest.state === 'success') {
@@ -164,8 +164,6 @@ export const OrderDetailsPage: React.FC = () => {
         getOrderRequest.response.errorCode === 'NOT_FOUND'
     )
         return <Page404 />;
-
-    console.log('ORDER', order);
 
     const nextStatus = getNextStatus(
         order?.status.currentStatus!,

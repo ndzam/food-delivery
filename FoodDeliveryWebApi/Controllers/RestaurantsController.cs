@@ -511,8 +511,6 @@ namespace FoodDeliveryWebApi.Controllers
                     ErrorCode = ErrorCodes.MISSING_FIELD
                 });
             }
-            //ase unda iyos? ra unda davubruno? get block davamato?
-            //tu ukve dablokilia?
             if (!Role.Equals(UserRoles.OWNER))
             {
                 return Forbid();
@@ -530,7 +528,6 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return Forbid();
             }
-            //useris shemowmeba ??
             var block = await _restaurantService.CreateBlock(id, req);
             if (!block.Success)
             {

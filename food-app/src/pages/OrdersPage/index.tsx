@@ -11,7 +11,7 @@ import { AppRoutes } from '../../routes/AppRoutes';
 import { OrderCard } from '../../components/OrderCard';
 import { getDate } from '../../utils/dateConverterUtils';
 
-const limit = 5;
+const limit = 20;
 
 export const OrdersPage: React.FC = () => {
     const { t } = useTranslation();
