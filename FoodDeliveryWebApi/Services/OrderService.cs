@@ -134,7 +134,7 @@ namespace FoodDeliveryWebApi.Services
                     Success = true
                 };
             }
-            catch (Exception e)
+            catch
             {
                 return new ApiResponse<List<Order>>
                 {
