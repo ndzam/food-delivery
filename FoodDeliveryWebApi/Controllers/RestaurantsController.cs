@@ -219,7 +219,7 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return NotFound();
             }
-            if (!UserId.Equals(res.Data.OwnerId) && false)
+            if (!UserId.Equals(res.Data.OwnerId))
             {
                 return Forbid();
             }
@@ -318,11 +318,11 @@ namespace FoodDeliveryWebApi.Controllers
             {
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
-            if(res.Data == null)
+            if(result.Data == null)
             {
                 return NotFound();
             }
-            return Ok(res);
+            return Ok(result);
         }
 
         [ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status200OK)]
